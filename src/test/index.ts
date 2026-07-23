@@ -1,5 +1,2 @@
-<<<<<<< Updated upstream
-const testStr = '1'
-=======
-const testStr01 = '2026-07-21  09:08:00';
->>>>>>> Stashed changes
+
+const testStr01 = '2026-07-23  09:08:00';
