@@ -93,7 +93,7 @@ export const useFundStore = create<FundState>((set, get) => ({
   },
 
   fetchFundDetail: async (code: string) => {
-    set({ loading: true, error: null });
+    set({ loading: true, error: null, currentFund: null });
     try {
       const info = await fundDataService.getFundInfo(code);
       const estimate = await fundDataService.getFundEstimate(code);
@@ -113,6 +113,33 @@ export const useFundStore = create<FundState>((set, get) => ({
             company: info.company,
           },
         });
+      } else {
+        // 兜底：从已有列表或搜索中查找
+        const existing = get().funds.find((f) => f.code === code);
+        if (existing) {
+          set({ currentFund: existing });
+        } else {
+          const list = await fundDataService.searchFund(code);
+          const matched = list.find((item) => item.code === code);
+          if (matched) {
+            set({
+              currentFund: {
+                id: Date.now(),
+                code: matched.code,
+                name: matched.name,
+                net_value: 0,
+                totalNav: 0,
+                dayGrowth: 0,
+                update_time: '',
+                type: matched.type || '未知类型',
+                manager: '未知',
+                company: '未知',
+              },
+            });
+          } else {
+            set({ currentFund: null, error: '未找到基金数据' });
+          }
+        }
       }
     } catch (error) {
       set({ error: '获取基金详情失败' });
@@ -123,7 +150,7 @@ export const useFundStore = create<FundState>((set, get) => ({
   },
 
   fetchFundHistory: async (code: string, size = 90) => {
-    set({ historyLoading: true });
+    set({ historyLoading: true, currentHistory: [] });
     try {
       const history = await fundDataService.getFundHistory(code, size);
       set({ currentHistory: history });
@@ -136,8 +163,8 @@ export const useFundStore = create<FundState>((set, get) => ({
 
   fetchHotFunds: async () => {
     try {
-      const hotFunds = await fundDataService.getHotFunds(10);
-      set({ hotFunds });
+      const ranking = await fundDataService.getFundRanking({ pn: 10 });
+      set({ hotFunds: ranking.list });
     } catch (error) {
       console.error('获取热门基金失败:', error);
     }

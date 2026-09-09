@@ -198,7 +198,7 @@ const FundList = () => {
                         <Text
                           strong
                           style={{
-                            color: isFlat ? '#666' : isRise ? '#3f8600' : '#cf1322',
+                            color: isFlat ? '#666' : isRise ? '#cf1322' : '#3f8600',
                             fontSize: 16,
                           }}
                         >
@@ -207,7 +207,7 @@ const FundList = () => {
                         {!isFlat && (
                           <Text
                             style={{
-                              color: isRise ? '#3f8600' : '#cf1322',
+                              color: isRise ? '#cf1322' : '#3f8600',
                               fontSize: 13,
                             }}
                           >

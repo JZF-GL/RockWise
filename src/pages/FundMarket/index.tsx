@@ -1,10 +1,14 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
-  Table, Typography, Button, Space, Tag, Input, Select, message,
+  Table, Typography, Button, Space, Tag, Input, Select, message, Tooltip,
 } from 'antd';
-import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import {
+  ReloadOutlined, SearchOutlined, StarOutlined, StarFilled, RobotOutlined,
+} from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { FundDataService } from '../../services/fundData';
+import { getMyFunds, addFundToMyFunds, removeFundFromMyFunds } from '../../utils/myFunds';
+import AIFundAnalysisModal from '../../components/AIFundAnalysisModal';
 
 const { Text } = Typography;
 
@@ -33,12 +37,43 @@ const FundMarket = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [fundList, setFundList] = useState<any[]>([]);
+  const [searchList, setSearchList] = useState<any[]>([]);
+  const [searchMode, setSearchMode] = useState(false);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [fundType, setFundType] = useState('all');
   const [sortField, setSortField] = useState('1nzf');
   const [keyword, setKeyword] = useState('');
+  const [myFundCodes, setMyFundCodes] = useState<string[]>([]);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [selectedFundForAI, setSelectedFundForAI] = useState<any>(null);
+
+  const handleOpenAI = (e: React.MouseEvent, record: any) => {
+    e.stopPropagation();
+    setSelectedFundForAI(record);
+    setAiModalOpen(true);
+  };
+
+  useEffect(() => {
+    setMyFundCodes(getMyFunds());
+  }, []);
+
+  const handleToggleMyFund = (e: React.MouseEvent, record: { code: string; name: string }) => {
+    e.stopPropagation();
+    const isAdded = myFundCodes.includes(record.code);
+    if (isAdded) {
+      removeFundFromMyFunds(record.code);
+      const updated = myFundCodes.filter((c) => c !== record.code);
+      setMyFundCodes(updated);
+      message.info(`已将 ${record.name} 从我的基金中移除`);
+    } else {
+      addFundToMyFunds(record.code);
+      const updated = [...myFundCodes, record.code];
+      setMyFundCodes(updated);
+      message.success(`已添加 ${record.name} 到我的基金`);
+    }
+  };
 
   const fetchRanking = useCallback(async () => {
     setLoading(true);
@@ -59,36 +94,35 @@ const FundMarket = () => {
   }, [fundType, sortField, page, pageSize]);
 
   useEffect(() => {
-    fetchRanking();
-  }, [fetchRanking]);
+    if (!searchMode) {
+      fetchRanking();
+    }
+  }, [fetchRanking, searchMode]);
 
   const handleSearch = async () => {
-    if (!keyword.trim()) {
-      fetchRanking();
+    const kw = keyword.trim();
+    if (!kw) {
+      handleClearSearch();
       return;
     }
     setLoading(true);
+    setSearchMode(true);
+    setPage(1);
     try {
-      const results = await fundDataService.searchFund(keyword);
-      const list = results.map((item) => ({
-        code: item.code,
-        name: item.name,
-        type: item.type,
-        nav: 0,
-        dayGrowth: 0,
-        weekGrowth: 0,
-        monthGrowth: 0,
-        yearGrowth: 0,
-        threeYearGrowth: 0,
-        totalGrowth: 0,
-      }));
-      setFundList(list);
-      setTotal(list.length);
+      const results = await fundDataService.searchFundWithMarketData(kw);
+      setSearchList(results);
     } catch {
       message.error('搜索失败');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleClearSearch = () => {
+    setKeyword('');
+    setSearchMode(false);
+    setSearchList([]);
+    setPage(1);
   };
 
   const growthColor = (v: number) => {
@@ -97,11 +131,30 @@ const FundMarket = () => {
     return '#8c8c8c';
   };
 
-  const growthText = (v: number) => (
-    <Text style={{ color: growthColor(v), fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
-      {v > 0 ? '+' : ''}{v?.toFixed(2) || '0.00'}%
-    </Text>
-  );
+  const growthText = (v: number) => {
+    if (v === undefined || v === null || isNaN(v)) {
+      return <Text style={{ color: '#8c8c8c' }}>--</Text>;
+    }
+    if (v === 0) {
+      return <Text style={{ color: '#8c8c8c', fontVariantNumeric: 'tabular-nums' }}>0.00%</Text>;
+    }
+    return (
+      <Text style={{ color: growthColor(v), fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
+        {v > 0 ? '+' : ''}{v.toFixed(2)}%
+      </Text>
+    );
+  };
+
+  // 当前表格渲染数据：搜索模式下由前端切片，全量模式下由后端分页
+  const currentTableData = useMemo(() => {
+    if (searchMode) {
+      const start = (page - 1) * pageSize;
+      return searchList.slice(start, start + pageSize);
+    }
+    return fundList;
+  }, [searchMode, searchList, fundList, page, pageSize]);
+
+  const currentTotal = searchMode ? searchList.length : total;
 
   const columns = [
     {
@@ -127,7 +180,7 @@ const FundMarket = () => {
             cursor: 'pointer',
             fontVariantNumeric: 'tabular-nums',
           }}
-          onClick={(e) => { e.stopPropagation(); navigate(`/fund/${code}`); }}
+          onClick={(e) => { e.stopPropagation(); navigate(`/fund/${code}`, { state: { from: '/' } }); }}
         >
           {code}
         </Text>
@@ -202,18 +255,57 @@ const FundMarket = () => {
     },
     {
       title: '操作',
-      width: 64,
+      width: 215,
       fixed: 'right' as const,
-      render: (_: any, record: any) => (
-        <Button
-          type="link"
-          size="small"
-          style={{ padding: 0, fontWeight: 500 }}
-          onClick={(e) => { e.stopPropagation(); navigate(`/fund/${record.code}`); }}
-        >
-          详情
-        </Button>
-      ),
+      render: (_: any, record: any) => {
+        const isAdded = myFundCodes.includes(record.code);
+        return (
+          <Space size={6} onClick={(e) => e.stopPropagation()}>
+            <Tooltip title={isAdded ? '点击从我的基金中移除' : '快速添加进我的基金'}>
+              <Button
+                type={isAdded ? 'default' : 'primary'}
+                ghost={!isAdded}
+                size="small"
+                icon={isAdded ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />}
+                style={
+                  isAdded
+                    ? {
+                        borderColor: '#ffd591',
+                        color: '#d48806',
+                        background: '#fffbe6',
+                        fontSize: 12,
+                        padding: '0 8px',
+                      }
+                    : { fontSize: 12, padding: '0 8px' }
+                }
+                onClick={(e) => handleToggleMyFund(e, record)}
+              >
+                {isAdded ? '已自选' : '+ 自选'}
+              </Button>
+            </Tooltip>
+            <Button
+              type="link"
+              size="small"
+              icon={<RobotOutlined />}
+              style={{ color: '#722ed1', padding: '0 4px', fontWeight: 500 }}
+              onClick={(e) => handleOpenAI(e, record)}
+            >
+              AI分析
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              style={{ padding: '0 4px', fontWeight: 500 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/fund/${record.code}`, { state: { from: '/' } });
+              }}
+            >
+              详情
+            </Button>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -231,30 +323,55 @@ const FundMarket = () => {
       }}>
         <Space wrap size={10}>
           <Input
-            placeholder="搜索基金名称或代码"
+            placeholder="搜索基金名称、代码或拼音缩写"
             prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
             value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setKeyword(val);
+              if (!val.trim()) {
+                handleClearSearch();
+              }
+            }}
             onPressEnter={handleSearch}
-            style={{ width: 240 }}
+            style={{ width: 260 }}
             allowClear
           />
-          <Button type="primary" onClick={handleSearch} size="middle">
+          <Button type="primary" onClick={handleSearch} size="middle" loading={loading && searchMode}>
             搜索
           </Button>
-          <Select
-            value={fundType}
-            onChange={(v) => { setFundType(v); setPage(1); }}
-            options={typeOptions}
-            style={{ width: 110 }}
-          />
-          <Select
-            value={sortField}
-            onChange={(v) => { setSortField(v); setPage(1); }}
-            options={sortOptions}
-            style={{ width: 120 }}
-          />
-          <Button icon={<ReloadOutlined />} onClick={fetchRanking} loading={loading}>
+          {searchMode && (
+            <Button onClick={handleClearSearch} size="middle">
+              清除搜索
+            </Button>
+          )}
+          {!searchMode && (
+            <>
+              <Select
+                value={fundType}
+                onChange={(v) => { setFundType(v); setPage(1); }}
+                options={typeOptions}
+                style={{ width: 110 }}
+              />
+              <Select
+                value={sortField}
+                onChange={(v) => { setSortField(v); setPage(1); }}
+                options={sortOptions}
+                style={{ width: 120 }}
+              />
+            </>
+          )}
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => {
+              if (searchMode) {
+                handleSearch();
+              } else {
+                fetchRanking();
+              }
+            }}
+            loading={loading}
+          >
             刷新
           </Button>
         </Space>
@@ -271,19 +388,23 @@ const FundMarket = () => {
       }}>
         <Table
           columns={columns}
-          dataSource={fundList}
+          dataSource={currentTableData}
           rowKey="code"
           loading={loading}
           scroll={{ x: 1000, y: 'calc(100vh - 186px)' }}
           pagination={{
             current: page,
             pageSize,
-            total,
+            total: currentTotal,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (t) => (
               <Text type="secondary" style={{ fontSize: 13 }}>
-                共 <Text strong style={{ color: '#262626' }}>{t}</Text> 只基金
+                {searchMode ? (
+                  <>搜索结果: 共 <Text strong style={{ color: '#1677ff' }}>{t}</Text> 只匹配基金</>
+                ) : (
+                  <>共 <Text strong style={{ color: '#262626' }}>{t}</Text> 只基金</>
+                )}
               </Text>
             ),
             onChange: (p, ps) => { setPage(p); setPageSize(ps); },
@@ -292,13 +413,20 @@ const FundMarket = () => {
           }}
           onRow={(record) => ({
             style: { cursor: 'pointer' },
-            onClick: () => navigate(`/fund/${record.code}`),
+            onClick: () => navigate(`/fund/${record.code}`, { state: { from: '/' } }),
           })}
           size="small"
           style={{ height: '100%' }}
           rowClassName={() => 'fund-table-row'}
         />
       </div>
+
+      <AIFundAnalysisModal
+        open={aiModalOpen}
+        fund={selectedFundForAI}
+        onClose={() => setAiModalOpen(false)}
+        onMyFundsChanged={() => setMyFundCodes(getMyFunds())}
+      />
     </div>
   );
 };

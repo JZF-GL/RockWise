@@ -5,27 +5,17 @@ import {
 } from 'antd';
 import {
   ReloadOutlined, SearchOutlined,
-  RiseOutlined, FallOutlined, StarFilled, PlusOutlined,
+  RiseOutlined, FallOutlined, StarFilled, PlusOutlined, RobotOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useFundStore } from '../../stores/fundStore';
 import { useAuthStore } from '../../stores/authStore';
 import { FundDataService } from '../../services/fundData';
+import { getMyFunds, saveMyFunds } from '../../utils/myFunds';
+import AIFundAnalysisModal from '../../components/AIFundAnalysisModal';
 
 const { Text } = Typography;
 const fundDataService = FundDataService.getInstance();
-
-const STORAGE_KEY = 'my_funds';
-const getMyFunds = (): string[] => {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '["000001","110011","163406","000961","270002"]');
-  } catch {
-    return ['000001', '110011', '163406', '000961', '270002'];
-  }
-};
-const saveMyFunds = (codes: string[]) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(codes));
-};
 
 const MyFunds = () => {
   const navigate = useNavigate();
@@ -36,6 +26,8 @@ const MyFunds = () => {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchResults, setSearchResults] = useState<{ code: string; name: string; type: string }[]>([]);
   const [searching, setSearching] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [selectedFundForAI, setSelectedFundForAI] = useState<any>(null);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -110,16 +102,16 @@ const MyFunds = () => {
       value: riseCount,
       suffix: `/ ${myCodes.length}`,
       icon: <RiseOutlined style={{ fontSize: 20 }} />,
-      color: '#3f8600',
-      bg: 'linear-gradient(135deg, #f6ffed, #d9f7be)',
+      color: '#cf1322',
+      bg: 'linear-gradient(135deg, #fff2f0, #ffccc7)',
     },
     {
       title: '今日下跌',
       value: fallCount,
       suffix: `/ ${myCodes.length}`,
       icon: <FallOutlined style={{ fontSize: 20 }} />,
-      color: '#cf1322',
-      bg: 'linear-gradient(135deg, #fff2f0, #ffccc7)',
+      color: '#3f8600',
+      bg: 'linear-gradient(135deg, #f6ffed, #d9f7be)',
     },
   ];
 
@@ -210,8 +202,20 @@ const MyFunds = () => {
                 transition: 'all 0.2s ease',
                 boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
               }}
-              onClick={() => navigate(`/fund/${fund.code}`)}
+              onClick={() => navigate(`/fund/${fund.code}`, { state: { from: '/my-funds' } })}
               actions={[
+                <Button
+                  type="text"
+                  icon={<RobotOutlined style={{ color: '#722ed1' }} />}
+                  style={{ color: '#722ed1', borderRadius: 6 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedFundForAI(fund);
+                    setAiModalOpen(true);
+                  }}
+                >
+                  AI分析
+                </Button>,
                 <Button
                   type="text"
                   danger
@@ -248,7 +252,7 @@ const MyFunds = () => {
                       <Text
                         strong
                         style={{
-                          color: isFlat ? '#595959' : isRise ? '#3f8600' : '#cf1322',
+                          color: isFlat ? '#595959' : isRise ? '#cf1322' : '#3f8600',
                           fontSize: 14,
                           fontVariantNumeric: 'tabular-nums',
                         }}
@@ -259,7 +263,7 @@ const MyFunds = () => {
                     {!isFlat && (
                       <Text
                         style={{
-                          color: isRise ? '#3f8600' : '#cf1322',
+                          color: isRise ? '#cf1322' : '#3f8600',
                           fontWeight: 500,
                           fontSize: 13,
                           fontVariantNumeric: 'tabular-nums',
@@ -331,6 +335,17 @@ const MyFunds = () => {
           )}
         />
       </Modal>
+
+      <AIFundAnalysisModal
+        open={aiModalOpen}
+        fund={selectedFundForAI}
+        onClose={() => setAiModalOpen(false)}
+        onMyFundsChanged={() => {
+          const codes = getMyFunds();
+          setMyCodes(codes);
+          fetchFunds(codes);
+        }}
+      />
     </div>
   );
 };

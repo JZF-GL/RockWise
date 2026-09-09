@@ -1,4 +1,7 @@
+import React, { useState, useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
+import { Radio, Space, Card, Row, Col, Statistic } from 'antd';
+import { RiseOutlined, FallOutlined } from '@ant-design/icons';
 
 interface ChartData {
   dates: string[];
@@ -6,99 +9,252 @@ interface ChartData {
 }
 
 interface NetValueChartProps {
-  data: ChartData;
+  data: ChartData; // 建议按时间正序传入
   title?: string;
   height?: number;
 }
 
+export type PeriodType = '1m' | '3m' | '6m' | '1y';
+
 const NetValueChart: React.FC<NetValueChartProps> = ({
   data,
   title = '净值走势图',
-  height = 350,
+  height = 360,
 }) => {
-  const option = {
-    title: {
-      text: title,
-      left: 'center',
-    },
-    tooltip: {
-      trigger: 'axis',
-      formatter: (params: any) => {
-        const point = params[0];
-        return `${point.axisValue}<br/>净值: ${point.value.toFixed(4)}`;
+  const [period, setPeriod] = useState<PeriodType>('3m');
+
+  // 根据选定周期过滤截取数据
+  const filteredData = useMemo(() => {
+    if (!data || !data.dates || data.dates.length === 0) {
+      return { dates: [], values: [] };
+    }
+
+    let count = data.dates.length;
+    // 1个月约 22 交易日，3个月约 66 交易日，半年约 125 交易日，一年约 250 交易日
+    if (period === '1m') count = 22;
+    else if (period === '3m') count = 66;
+    else if (period === '6m') count = 125;
+    else if (period === '1y') count = 250;
+
+    const sliceCount = Math.min(count, data.dates.length);
+    const startIndex = data.dates.length - sliceCount;
+
+    return {
+      dates: data.dates.slice(startIndex),
+      values: data.values.slice(startIndex),
+    };
+  }, [data, period]);
+
+  // 计算区间统计值
+  const stats = useMemo(() => {
+    const vals = filteredData.values;
+    if (!vals || vals.length === 0) {
+      return { startNav: 0, latestNav: 0, maxNav: 0, minNav: 0, growth: 0 };
+    }
+    const startNav = vals[0];
+    const latestNav = vals[vals.length - 1];
+    let maxNav = vals[0];
+    let minNav = vals[0];
+
+    vals.forEach((v) => {
+      if (v > maxNav) maxNav = v;
+      if (v < minNav) minNav = v;
+    });
+
+    const growth = startNav > 0 ? ((latestNav - startNav) / startNav) * 100 : 0;
+
+    return {
+      startNav,
+      latestNav,
+      maxNav,
+      minNav,
+      growth: parseFloat(growth.toFixed(2)),
+    };
+  }, [filteredData]);
+
+  const isRise = stats.growth >= 0;
+
+  const option = useMemo(() => {
+    return {
+      title: {
+        text: title,
+        left: 'center',
+        textStyle: { fontSize: 13, fontWeight: 'normal', color: '#595959' },
       },
-    },
-    grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '3%',
-      containLabel: true,
-    },
-    xAxis: {
-      type: 'category',
-      boundaryGap: false,
-      data: data.dates,
-      axisLabel: {
-        rotate: 45,
-        fontSize: 11,
-      },
-    },
-    yAxis: {
-      type: 'value',
-      axisLabel: {
-        formatter: (value: number) => value.toFixed(2),
-      },
-    },
-    series: [
-      {
-        name: '净值',
-        type: 'line',
-        data: data.values,
-        smooth: true,
-        lineStyle: {
-          color: '#1677ff',
-          width: 2,
+      tooltip: {
+        trigger: 'axis',
+        formatter: (params: any) => {
+          const point = params[0];
+          if (!point) return '';
+          const val = point.value;
+          const start = stats.startNav;
+          const periodPct = start > 0 ? (((val - start) / start) * 100).toFixed(2) : '0.00';
+          const pColor = Number(periodPct) >= 0 ? '#cf1322' : '#3f8600';
+          return `
+            <div style="font-size:12px;">
+              <div style="font-weight:600;margin-bottom:4px;color:#333;">${point.axisValue}</div>
+              <div>单位净值: <b style="color:#1677ff">${Number(val).toFixed(4)}</b></div>
+              <div>较区间起点: <span style="font-weight:600;color:${pColor}">${Number(periodPct) >= 0 ? '+' : ''}${periodPct}%</span></div>
+            </div>
+          `;
         },
-        areaStyle: {
-          color: {
-            type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: 'rgba(22, 119, 255, 0.3)' },
-              { offset: 1, color: 'rgba(22, 119, 255, 0.05)' },
-            ],
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '12%',
+        top: '12%',
+        containLabel: true,
+      },
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: filteredData.dates,
+        axisLabel: {
+          rotate: filteredData.dates.length > 30 ? 30 : 0,
+          fontSize: 11,
+        },
+      },
+      yAxis: {
+        type: 'value',
+        scale: true,
+        axisLabel: {
+          formatter: (value: number) => value.toFixed(3),
+        },
+        splitLine: {
+          lineStyle: {
+            type: 'dashed',
+            color: '#f0f0f0',
           },
         },
-        itemStyle: {
-          color: '#1677ff',
+      },
+      series: [
+        {
+          name: '净值',
+          type: 'line',
+          data: filteredData.values,
+          smooth: true,
+          lineStyle: {
+            color: '#1677ff',
+            width: 2.2,
+          },
+          areaStyle: {
+            color: {
+              type: 'linear',
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(22, 119, 255, 0.25)' },
+                { offset: 1, color: 'rgba(22, 119, 255, 0.02)' },
+              ],
+            },
+          },
+          itemStyle: {
+            color: '#1677ff',
+          },
+          markPoint: {
+            data: [
+              { type: 'max', name: '最高', itemStyle: { color: '#cf1322' } },
+              { type: 'min', name: '最低', itemStyle: { color: '#3f8600' } },
+            ],
+            label: {
+              fontSize: 10,
+              formatter: '{c}',
+            },
+          },
         },
-      },
-    ],
-    dataZoom: [
-      {
-        type: 'inside',
-        start: 0,
-        end: 100,
-      },
-      {
-        type: 'slider',
-        start: 0,
-        end: 100,
-        height: 20,
-        bottom: 10,
-      },
-    ],
-  };
+      ],
+      dataZoom: [
+        {
+          type: 'inside',
+          start: 0,
+          end: 100,
+        },
+        {
+          type: 'slider',
+          start: 0,
+          end: 100,
+          height: 18,
+          bottom: 2,
+        },
+      ],
+    };
+  }, [filteredData, title, stats]);
 
   return (
-    <ReactECharts
-      option={option}
-      style={{ height: `${height}px`, width: '100%' }}
-      opts={{ renderer: 'canvas' }}
-    />
+    <div>
+      {/* 周期切换与数据统计 */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
+        <Space>
+          <span style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>走势周期:</span>
+          <Radio.Group
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
+            size="small"
+            buttonStyle="solid"
+          >
+            <Radio.Button value="1m">1个月</Radio.Button>
+            <Radio.Button value="3m">3个月</Radio.Button>
+            <Radio.Button value="6m">半年</Radio.Button>
+            <Radio.Button value="1y">一年</Radio.Button>
+          </Radio.Group>
+        </Space>
+      </div>
+
+      {/* 统计指标卡 */}
+      <Row gutter={[12, 12]} style={{ marginBottom: 14 }}>
+        <Col xs={12} sm={6}>
+          <Card size="small" style={{ background: '#fafafa' }}>
+            <Statistic
+              title="区间涨跌幅"
+              value={stats.growth}
+              precision={2}
+              valueStyle={{ color: isRise ? '#cf1322' : '#3f8600', fontWeight: 'bold' }}
+              prefix={isRise ? <RiseOutlined /> : <FallOutlined />}
+              suffix="%"
+            />
+          </Card>
+        </Col>
+        <Col xs={12} sm={6}>
+          <Card size="small" style={{ background: '#fafafa' }}>
+            <Statistic
+              title="区间最高净值"
+              value={stats.maxNav}
+              precision={4}
+              valueStyle={{ color: '#cf1322' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={12} sm={6}>
+          <Card size="small" style={{ background: '#fafafa' }}>
+            <Statistic
+              title="区间最低净值"
+              value={stats.minNav}
+              precision={4}
+              valueStyle={{ color: '#3f8600' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={12} sm={6}>
+          <Card size="small" style={{ background: '#fafafa' }}>
+            <Statistic
+              title="起点净值"
+              value={stats.startNav}
+              precision={4}
+              valueStyle={{ color: '#595959' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <ReactECharts
+        option={option}
+        style={{ height: `${height}px`, width: '100%' }}
+        opts={{ renderer: 'canvas' }}
+      />
+    </div>
   );
 };
 
