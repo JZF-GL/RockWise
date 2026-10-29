@@ -20,6 +20,7 @@ const API = {
     `/api/f10/lsjz?fundCode=${code}&pageIndex=${page}&pageSize=${size}`,
   fundRank: '/api/fund/data/rankhandler.aspx',
   sinaFundEstimate: (code: string) => `/api/sinahq/list=fu_${code}`,
+  sinaQuotes: (symbols: string) => `/api/sinahq/list=${symbols}`,
   tencentMinute: (symbol: string) => `/api/tencent/appstock/app/minute/query?code=${symbol}`,
   sinaNews: (size = 10) => `/api/sinanews/api/zhibo/feed?zhibo_id=152&page=1&page_size=${size}`,
 };
@@ -185,14 +186,56 @@ export class FundDataService {
   }
 
   /**
+   * 批量获取股票及指数实时行情（新浪接口）
+   */
+  async getBatchQuotes(symbols: string[]): Promise<Map<string, { name: string; price: number; preClose: number; changePercent: number }>> {
+    const result = new Map<string, { name: string; price: number; preClose: number; changePercent: number }>();
+    if (!symbols || symbols.length === 0) return result;
+    try {
+      const res = await api.get(API.sinaQuotes(symbols.join(',')), {
+        responseType: 'arraybuffer',
+        headers: { Referer: 'https://finance.sina.com.cn' },
+      });
+      const decoder = new TextDecoder('gbk');
+      const text = decoder.decode(res.data);
+      const lines = text.split(';');
+      for (const line of lines) {
+        const match = line.match(/var hq_str_([a-zA-Z0-9_]+)=(?:"|')(.*)(?:"|')/);
+        if (match) {
+          const sym = match[1];
+          const parts = match[2].split(',');
+          if (parts.length >= 4) {
+            const name = parts[0];
+            const preClose = parseFloat(parts[2]) || 0;
+            const price = parseFloat(parts[3]) || preClose;
+            const changePercent = preClose > 0 ? ((price - preClose) / preClose) * 100 : 0;
+            result.set(sym, { name, price, preClose, changePercent });
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('获取批量股票行情失败:', e);
+    }
+    return result;
+  }
+
+  /**
    * 获取今日 9:30 ~ 15:00 盘中完整预估分时数据
    */
   async getTodayIntradayEstimate(code: string, currentNav?: number): Promise<{
     updateTime: string;
+    // 平台自计算实时估值
+    selfEstimateNav: number;
+    selfEstimateGrowth: number;
+    topHoldingsGrowth: number;
+    residualGrowth: number;
+    topHoldingsRatio: number;
+    benchmarkGrowth: number;
+    // 原三方盘中估值
     latestEstimateNav: number;
     latestEstimateGrowth: number;
     baseNav: number;
-    holdings: { name: string; code: string; ratio: number; growth?: number }[];
+    holdings: { name: string; code: string; ratio: number; price?: number; growth?: number; contribution?: number }[];
     points: {
       time: string;
       estimateNav: number;
@@ -209,7 +252,47 @@ export class FundDataService {
     // 2. 获取基金前十大重仓股
     const holdings = await this.getFundHoldings(code);
 
-    // 3. 选取权重前 3~5 只核心重仓股，拉取分时行情拟合日内走势
+    // 3. 批量获取前十大持仓股票 + 沪深300指数实时行情，用于平台自研实时估值算法
+    const symbolsToFetch = ['sh000300', ...holdings.map((h) => h.marketSymbol)];
+    const quotesMap = await this.getBatchQuotes(symbolsToFetch);
+    const benchmarkQuote = quotesMap.get('sh000300');
+    const benchmarkGrowth = benchmarkQuote ? benchmarkQuote.changePercent : 0;
+
+    let topHoldingsRatio = 0;
+    let topHoldingsGrowth = 0;
+
+    const enrichedHoldings = holdings.map((h) => {
+      const q = quotesMap.get(h.marketSymbol);
+      const price = q ? q.price : 0;
+      const growth = q ? q.changePercent : 0;
+      // 股票贡献 = 持仓比例 * 实时涨幅 / 100
+      const contribution = Number(((h.ratio * growth) / 100).toFixed(4));
+      topHoldingsRatio += h.ratio;
+      topHoldingsGrowth += contribution;
+      return {
+        name: h.stockName,
+        code: h.stockCode,
+        ratio: h.ratio,
+        price,
+        growth: Number(growth.toFixed(2)),
+        contribution,
+      };
+    });
+
+    // 偏股混合/股票型基金基准股票仓位预估为 85%（或取前十大占比与85%中较大值）
+    const assumedTotalStockRatio = Math.max(topHoldingsRatio, 85);
+    const residualRatio = Math.max(0, assumedTotalStockRatio - topHoldingsRatio);
+    // 剩余股票仓位以沪深300指数拟合
+    const residualGrowth = Number(((residualRatio * benchmarkGrowth) / 100).toFixed(4));
+
+    // 平台自计算实时估值涨幅
+    let selfEstimateGrowth = Number((topHoldingsGrowth + residualGrowth).toFixed(2));
+    if (enrichedHoldings.length === 0 && latestEstGrowth) {
+      selfEstimateGrowth = latestEstGrowth;
+    }
+    const selfEstimateNav = Number((baseNav * (1 + selfEstimateGrowth / 100)).toFixed(4));
+
+    // 4. 选取权重前 3~5 只核心重仓股，拉取分时行情拟合日内走势
     const topStocks = holdings.slice(0, 5);
     let minuteSeries: { time: string; growth: number }[] = [];
 
@@ -305,14 +388,16 @@ export class FundDataService {
 
     return {
       updateTime,
+      selfEstimateNav,
+      selfEstimateGrowth,
+      topHoldingsGrowth,
+      residualGrowth,
+      topHoldingsRatio,
+      benchmarkGrowth,
       latestEstimateNav: latestEstNav,
       latestEstimateGrowth: latestEstGrowth,
       baseNav,
-      holdings: holdings.map((h) => ({
-        name: h.stockName,
-        code: h.stockCode,
-        ratio: h.ratio,
-      })),
+      holdings: enrichedHoldings,
       points,
     };
   }

@@ -37,7 +37,7 @@ export const useMarketStore = create<MarketState>((set) => ({
         pn: 50,
       });
 
-      const funds = rankingResult.list || [];
+      const funds = (rankingResult.list || []) as any[];
 
       // 运行启发式分析
       const recommendations = analyzeFunds(funds);

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   List, Typography, Button, Space, Tag, Input, Empty, Card,
-  Row, Col, Statistic, message, Spin, AutoComplete,
+  Row, Col, Statistic, message, AutoComplete, Spin,
 } from 'antd';
 import {
   ReloadOutlined, SearchOutlined, FundOutlined,
@@ -10,23 +10,23 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useFundStore } from '../../stores/fundStore';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const FundList = () => {
   const {
     funds, loading, lastUpdate, fetchFunds, searchFund,
   } = useFundStore();
-  const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchKeyword] = useState('');
   const [searchOptions, setSearchOptions] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchFunds();
+    fetchFunds([]);
   }, [fetchFunds]);
 
   const handleRefresh = async () => {
-    await fetchFunds();
+    await fetchFunds([]);
     message.success('数据刷新成功');
   };
 
@@ -73,7 +73,6 @@ const FundList = () => {
   // 统计数据
   const riseCount = funds.filter((f) => f.dayGrowth > 0).length;
   const fallCount = funds.filter((f) => f.dayGrowth < 0).length;
-  const flatCount = funds.length - riseCount - fallCount;
 
   return (
     <div>

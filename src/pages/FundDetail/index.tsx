@@ -18,6 +18,7 @@ import { useFundStore } from '../../stores/fundStore';
 import { FundDataService } from '../../services/fundData';
 import { getMyFunds, addFundToMyFunds, removeFundFromMyFunds } from '../../utils/myFunds';
 import AIFundAnalysisModal from '../../components/AIFundAnalysisModal';
+import { darkThemeTokens } from '../../styles/theme';
 
 const { Title, Text } = Typography;
 const fundDataService = FundDataService.getInstance();
@@ -137,7 +138,7 @@ const FundDetail = () => {
       key: 'todayEstimate',
       label: (
         <span>
-          <ClockCircleOutlined /> 今日盘中估值 (9:30-15:00)
+          <ClockCircleOutlined /> 实时估值 (平台自算 & 盘中分时)
         </span>
       ),
       children: (
@@ -222,13 +223,13 @@ const FundDetail = () => {
           <Descriptions.Item label="基金代码">{currentFund.code}</Descriptions.Item>
           <Descriptions.Item label="基金名称">{currentFund.name}</Descriptions.Item>
           <Descriptions.Item label="最新净值">
-            <Text strong style={{ color: isFlat ? '#666' : isRise ? '#cf1322' : '#3f8600' }}>
+            <Text strong style={{ color: isFlat ? darkThemeTokens.flat : isRise ? darkThemeTokens.up : darkThemeTokens.down }}>
               {currentFund.net_value?.toFixed(4) || '--'}
             </Text>
           </Descriptions.Item>
           <Descriptions.Item label="日涨跌幅">
             {!isFlat ? (
-              <Text style={{ color: isRise ? '#cf1322' : '#3f8600' }}>
+              <Text style={{ color: isRise ? darkThemeTokens.up : darkThemeTokens.down }}>
                 {isRise ? '+' : ''}{currentFund.dayGrowth?.toFixed(2)}%
               </Text>
             ) : '--'}
@@ -253,41 +254,51 @@ const FundDetail = () => {
       children: (
         <Card>
           <div style={{
-            padding: 24,
-            border: '1px solid #d9d9d9',
+            padding: 20,
+            border: `1px solid ${darkThemeTokens.border}`,
             borderRadius: 8,
-            background: '#fafafa',
+            background: darkThemeTokens.bgInput,
           }}>
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <Title level={5}>AI分析报告</Title>
-              <Text>
+              <Title level={5} style={{ color: darkThemeTokens.textHeading, margin: 0 }}>AI分析报告</Title>
+              <Text style={{ color: darkThemeTokens.textPrimary }}>
                 基于近期市场走势和基金表现分析，该基金{currentFund.name}近期表现
                 {isRise ? '良好' : isFlat ? '平稳' : '承压'}。
               </Text>
               {currentHistory.length > 0 && (
-                <Text>
+                <Text style={{ color: darkThemeTokens.textSecondary }}>
                   近{currentHistory.length}个交易日中，
                   上涨{currentHistory.filter((h) => h.dayGrowth > 0).length}天，
                   下跌{currentHistory.filter((h) => h.dayGrowth < 0).length}天。
                 </Text>
               )}
               <Space>
-                <Tag color={isRise ? 'green' : isFlat ? 'blue' : 'red'}>
+                <Tag style={{
+                  background: isRise ? darkThemeTokens.upBg : isFlat ? darkThemeTokens.flatBg : darkThemeTokens.downBg,
+                  borderColor: isRise ? darkThemeTokens.upBorder : isFlat ? darkThemeTokens.border : darkThemeTokens.downBorder,
+                  color: isRise ? darkThemeTokens.up : isFlat ? darkThemeTokens.flat : darkThemeTokens.down,
+                }}>
                   今日: {isRise ? '上涨' : isFlat ? '持平' : '下跌'}
                 </Tag>
-                <Tag color="blue">建议: 持有观察</Tag>
+                <Tag style={{
+                  background: darkThemeTokens.primaryBg,
+                  borderColor: 'rgba(77, 122, 176, 0.3)',
+                  color: darkThemeTokens.primaryHover,
+                }}>
+                  建议: 持有观察
+                </Tag>
               </Space>
               <div style={{ marginTop: 8 }}>
                 <Button
                   type="primary"
                   icon={<RobotOutlined />}
-                  style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                  style={{ background: darkThemeTokens.ai, borderColor: darkThemeTokens.ai, color: '#f0eef8' }}
                   onClick={() => setAiModalOpen(true)}
                 >
-                  打开 AI 联网深度研判 (最新要闻 + 1个月/3个月趋势预测)
+                  打开 AI 联网深度研判 (最新要闻 + 趋势预测)
                 </Button>
               </div>
-              <Text type="secondary" style={{ fontSize: 12 }}>
+              <Text style={{ fontSize: 12, color: darkThemeTokens.textTertiary }}>
                 注意：以上分析仅供参考，不构成投资建议。投资有风险，入市需谨慎。
               </Text>
             </Space>
@@ -305,14 +316,14 @@ const FundDetail = () => {
         </Button>
         <Space>
           <Button
-            icon={isInMyFunds ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />}
+            icon={isInMyFunds ? <StarFilled style={{ color: darkThemeTokens.gold }} /> : <StarOutlined />}
             onClick={handleToggleMyFund}
             style={
               isInMyFunds
                 ? {
-                    borderColor: '#ffd591',
-                    color: '#d48806',
-                    background: '#fffbe6',
+                    borderColor: darkThemeTokens.goldBorder,
+                    color: darkThemeTokens.gold,
+                    background: darkThemeTokens.goldBg,
                   }
                 : undefined
             }
@@ -331,12 +342,12 @@ const FundDetail = () => {
             <Space size="large" wrap>
               <div>
                 <Space>
-                  <Title level={4} style={{ margin: 0 }}>{currentFund.name}</Title>
-                  <Tag color="blue">{currentFund.code}</Tag>
-                  {currentFund.type && <Tag color="cyan">{currentFund.type}</Tag>}
+                  <Title level={4} style={{ margin: 0, color: darkThemeTokens.textHeading }}>{currentFund.name}</Title>
+                  <Tag style={{ background: 'rgba(255, 255, 255, 0.05)', borderColor: darkThemeTokens.border, color: darkThemeTokens.textSecondary }}>{currentFund.code}</Tag>
+                  {currentFund.type && <Tag style={{ background: 'rgba(255, 255, 255, 0.05)', borderColor: darkThemeTokens.border, color: darkThemeTokens.textSecondary }}>{currentFund.type}</Tag>}
                 </Space>
                 {currentFund.company && (
-                  <Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
+                  <Text style={{ display: 'block', marginTop: 4, fontSize: 12, color: darkThemeTokens.textTertiary }}>
                     {currentFund.company} {currentFund.manager ? `· 经理: ${currentFund.manager}` : ''}
                   </Text>
                 )}
@@ -344,14 +355,14 @@ const FundDetail = () => {
               <Statistic
                 title="最新净值"
                 value={currentFund.net_value?.toFixed(4) || '--'}
-                valueStyle={{ color: isFlat ? '#666' : isRise ? '#cf1322' : '#3f8600' }}
+                valueStyle={{ color: isFlat ? darkThemeTokens.flat : isRise ? darkThemeTokens.up : darkThemeTokens.down }}
                 prefix={!isFlat ? (isRise ? <RiseOutlined /> : <FallOutlined />) : undefined}
               />
               {!isFlat && (
                 <Statistic
                   title="日涨跌幅"
                   value={`${isRise ? '+' : ''}${currentFund.dayGrowth?.toFixed(2)}%`}
-                  valueStyle={{ color: isRise ? '#cf1322' : '#3f8600', fontSize: 20 }}
+                  valueStyle={{ color: isRise ? darkThemeTokens.up : darkThemeTokens.down, fontSize: 20 }}
                 />
               )}
             </Space>

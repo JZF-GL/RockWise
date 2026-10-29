@@ -1,21 +1,20 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   Card, Typography, Button, Space, Tag, Input, Table, Tabs,
-  Row, Col, Statistic, Radio, InputNumber, message, Empty, Divider,
+  Row, Col, Radio, InputNumber, message, Empty, Divider,
 } from 'antd';
 import {
   WalletOutlined, FundOutlined, RiseOutlined, FallOutlined,
   TransactionOutlined, SearchOutlined,
 } from '@ant-design/icons';
 import { useTradingStore } from '../../stores/tradingStore';
-import { useAuthStore } from '../../stores/authStore';
 import { FundDataService } from '../../services/fundData';
+import { darkThemeTokens } from '../../styles/theme';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 const fundDataService = FundDataService.getInstance();
 
 const Trading = () => {
-  const { isLoggedIn } = useAuthStore();
   const {
     account, positions, orders, loading,
     fetchAccount, buy, sell, fetchOrders, refreshPositions,
@@ -24,11 +23,9 @@ const Trading = () => {
   // 交易表单状态
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [fundCode, setFundCode] = useState('');
-  const [fundName, setFundName] = useState('');
   const [tradeAmount, setTradeAmount] = useState<number>(0);
   const [tradeShares, setTradeShares] = useState<number>(0);
   const [searchResults, setSearchResults] = useState<{ code: string; name: string; type: string }[]>([]);
-  const [searching, setSearching] = useState(false);
   const [selectedFund, setSelectedFund] = useState<{ code: string; name: string } | null>(null);
 
   useEffect(() => {
@@ -43,14 +40,11 @@ const Trading = () => {
       setSearchResults([]);
       return;
     }
-    setSearching(true);
     try {
       const results = await fundDataService.searchFund(value);
       setSearchResults(results.slice(0, 10));
     } catch {
       setSearchResults([]);
-    } finally {
-      setSearching(false);
     }
   }, []);
 
@@ -58,7 +52,6 @@ const Trading = () => {
   const handleSelectFund = (code: string, name: string) => {
     setSelectedFund({ code, name });
     setFundCode(code);
-    setFundName(name);
     setSearchResults([]);
   };
 
@@ -112,7 +105,6 @@ const Trading = () => {
   const resetForm = () => {
     setSelectedFund(null);
     setFundCode('');
-    setFundName('');
     setTradeAmount(0);
     setTradeShares(0);
   };
@@ -129,35 +121,35 @@ const Trading = () => {
       title: '基金代码',
       dataIndex: 'fund_code',
       width: 90,
-      render: (code: string) => <Text strong style={{ color: '#1677ff' }}>{code}</Text>,
+      render: (code: string) => <Text strong style={{ color: darkThemeTokens.textLink }}>{code}</Text>,
     },
     {
       title: '基金名称',
       dataIndex: 'fund_name',
       width: 160,
       ellipsis: true,
-      render: (name: string) => <Text strong style={{ fontSize: 13 }}>{name}</Text>,
+      render: (name: string) => <Text strong style={{ fontSize: 13, color: darkThemeTokens.textHeading }}>{name}</Text>,
     },
     {
       title: '持有份额',
       dataIndex: 'shares',
       width: 90,
       align: 'right' as const,
-      render: (v: number) => <Text style={{ fontVariantNumeric: 'tabular-nums' }}>{v.toFixed(2)}</Text>,
+      render: (v: number) => <Text style={{ fontVariantNumeric: 'tabular-nums', color: darkThemeTokens.textPrimary }}>{v.toFixed(2)}</Text>,
     },
     {
       title: '成本价',
       dataIndex: 'avg_cost',
       width: 80,
       align: 'right' as const,
-      render: (v: number) => <Text type="secondary">{v.toFixed(4)}</Text>,
+      render: (v: number) => <Text style={{ color: darkThemeTokens.textSecondary }}>{v.toFixed(4)}</Text>,
     },
     {
       title: '现价',
       dataIndex: 'currentNav',
       width: 80,
       align: 'right' as const,
-      render: (v: number) => <Text style={{ fontVariantNumeric: 'tabular-nums' }}>{v.toFixed(4)}</Text>,
+      render: (v: number) => <Text style={{ fontVariantNumeric: 'tabular-nums', color: darkThemeTokens.textPrimary }}>{v.toFixed(4)}</Text>,
     },
     {
       title: '持仓市值',
@@ -165,7 +157,7 @@ const Trading = () => {
       width: 100,
       align: 'right' as const,
       render: (v: number) => (
-        <Text strong style={{ fontVariantNumeric: 'tabular-nums' }}>
+        <Text strong style={{ fontVariantNumeric: 'tabular-nums', color: darkThemeTokens.textPrimary }}>
           ¥{v.toFixed(2)}
         </Text>
       ),
@@ -177,10 +169,10 @@ const Trading = () => {
       align: 'right' as const,
       render: (v: number, record: any) => (
         <Space size={4}>
-          <Text style={{ color: v >= 0 ? '#cf1322' : '#3f8600', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+          <Text style={{ color: v >= 0 ? darkThemeTokens.up : darkThemeTokens.down, fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
             {v >= 0 ? '+' : ''}{v.toFixed(2)}
           </Text>
-          <Text style={{ color: record.profitLossPercent >= 0 ? '#cf1322' : '#3f8600', fontSize: 12 }}>
+          <Text style={{ color: record.profitLossPercent >= 0 ? darkThemeTokens.up : darkThemeTokens.down, fontSize: 12 }}>
             ({record.profitLossPercent >= 0 ? '+' : ''}{record.profitLossPercent.toFixed(2)}%)
           </Text>
         </Space>
@@ -193,11 +185,10 @@ const Trading = () => {
         <Button
           type="link"
           size="small"
-          danger
+          style={{ color: darkThemeTokens.down }}
           onClick={() => {
             setSelectedFund({ code: record.fund_code, name: record.fund_name });
             setFundCode(record.fund_code);
-            setFundName(record.fund_name);
             setTradeType('sell');
           }}
         >
@@ -213,26 +204,33 @@ const Trading = () => {
       title: '时间',
       dataIndex: 'created_at',
       width: 160,
-      render: (v: string) => <Text type="secondary" style={{ fontSize: 12 }}>{v}</Text>,
+      render: (v: string) => <Text style={{ fontSize: 12, color: darkThemeTokens.textTertiary }}>{v}</Text>,
     },
     {
       title: '基金代码',
       dataIndex: 'fund_code',
       width: 88,
-      render: (code: string) => <Text style={{ color: '#1677ff' }}>{code}</Text>,
+      render: (code: string) => <Text style={{ color: darkThemeTokens.textLink }}>{code}</Text>,
     },
     {
       title: '基金名称',
       dataIndex: 'fund_name',
       width: 150,
       ellipsis: true,
+      render: (name: string) => <Text style={{ color: darkThemeTokens.textHeading }}>{name}</Text>,
     },
     {
       title: '类型',
       dataIndex: 'type',
       width: 70,
       render: (type: string) => (
-        <Tag color={type === 'buy' ? 'red' : 'green'} style={{ borderRadius: 4, margin: 0 }}>
+        <Tag style={{
+          background: type === 'buy' ? darkThemeTokens.upBg : darkThemeTokens.downBg,
+          borderColor: type === 'buy' ? darkThemeTokens.upBorder : darkThemeTokens.downBorder,
+          color: type === 'buy' ? darkThemeTokens.up : darkThemeTokens.down,
+          borderRadius: 4,
+          margin: 0,
+        }}>
           {type === 'buy' ? '买入' : '卖出'}
         </Tag>
       ),
@@ -242,21 +240,21 @@ const Trading = () => {
       dataIndex: 'amount',
       width: 100,
       align: 'right' as const,
-      render: (v: number) => <Text style={{ fontVariantNumeric: 'tabular-nums' }}>¥{v.toFixed(2)}</Text>,
+      render: (v: number) => <Text style={{ fontVariantNumeric: 'tabular-nums', color: darkThemeTokens.textPrimary }}>¥{v.toFixed(2)}</Text>,
     },
     {
       title: '净值',
       dataIndex: 'nav',
       width: 80,
       align: 'right' as const,
-      render: (v: number) => <Text>{v.toFixed(4)}</Text>,
+      render: (v: number) => <Text style={{ color: darkThemeTokens.textSecondary }}>{v.toFixed(4)}</Text>,
     },
     {
       title: '份额',
       dataIndex: 'shares',
       width: 80,
       align: 'right' as const,
-      render: (v: number) => <Text>{v.toFixed(2)}</Text>,
+      render: (v: number) => <Text style={{ color: darkThemeTokens.textSecondary }}>{v.toFixed(2)}</Text>,
     },
   ];
 
@@ -271,56 +269,57 @@ const Trading = () => {
   return (
     <div>
       {/* 账户概览卡片 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+      <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
         {[
           {
             title: '总资产',
             value: totalAssets,
-            icon: <WalletOutlined style={{ fontSize: 20 }} />,
-            color: '#1677ff',
-            bg: 'linear-gradient(135deg, #e6f4ff, #bae0ff)',
+            icon: <WalletOutlined style={{ fontSize: 18 }} />,
+            color: darkThemeTokens.primaryHover,
+            bg: darkThemeTokens.primaryBg,
             prefix: '¥',
           },
           {
             title: '可用余额',
             value: account?.balance || 0,
-            icon: <FundOutlined style={{ fontSize: 20 }} />,
-            color: '#52c41a',
-            bg: 'linear-gradient(135deg, #f6ffed, #d9f7be)',
+            icon: <FundOutlined style={{ fontSize: 18 }} />,
+            color: darkThemeTokens.textPrimary,
+            bg: 'rgba(255, 255, 255, 0.04)',
             prefix: '¥',
           },
           {
             title: '持仓市值',
             value: totalPositionValue,
-            icon: <TransactionOutlined style={{ fontSize: 20 }} />,
-            color: '#722ed1',
-            bg: 'linear-gradient(135deg, #f9f0ff, #efdbff)',
+            icon: <TransactionOutlined style={{ fontSize: 18 }} />,
+            color: darkThemeTokens.ai,
+            bg: darkThemeTokens.aiBg,
             prefix: '¥',
           },
           {
             title: '总盈亏',
             value: totalProfitLoss,
-            icon: totalProfitLoss >= 0 ? <RiseOutlined style={{ fontSize: 20 }} /> : <FallOutlined style={{ fontSize: 20 }} />,
-            color: totalProfitLoss >= 0 ? '#cf1322' : '#3f8600',
-            bg: totalProfitLoss >= 0 ? 'linear-gradient(135deg, #fff2f0, #ffccc7)' : 'linear-gradient(135deg, #f6ffed, #d9f7be)',
+            icon: totalProfitLoss >= 0 ? <RiseOutlined style={{ fontSize: 18 }} /> : <FallOutlined style={{ fontSize: 18 }} />,
+            color: totalProfitLoss >= 0 ? darkThemeTokens.up : darkThemeTokens.down,
+            bg: totalProfitLoss >= 0 ? darkThemeTokens.upBg : darkThemeTokens.downBg,
             prefix: totalProfitLoss >= 0 ? '+¥' : '-¥',
             valueAbsolute: Math.abs(totalProfitLoss),
           },
         ].map((card) => (
           <Col xs={24} sm={12} lg={6} key={card.title}>
-            <Card bodyStyle={{ padding: '18px 20px' }} style={{ borderRadius: 10 }}>
+            <Card bodyStyle={{ padding: '14px 16px' }} style={{ borderRadius: 8, background: darkThemeTokens.bgCard, border: `1px solid ${darkThemeTokens.border}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{
-                  width: 42, height: 42, borderRadius: 10,
+                  width: 36, height: 36, borderRadius: 6,
                   background: card.bg, display: 'flex',
                   alignItems: 'center', justifyContent: 'center',
                   color: card.color, flexShrink: 0,
+                  border: '1px solid rgba(255, 255, 255, 0.04)',
                 }}>
                   {card.icon}
                 </div>
                 <div>
-                  <Text type="secondary" style={{ fontSize: 12 }}>{card.title}</Text>
-                  <div style={{ fontSize: 20, fontWeight: 600, color: card.color, fontVariantNumeric: 'tabular-nums' }}>
+                  <Text style={{ fontSize: 12, color: darkThemeTokens.textSecondary }}>{card.title}</Text>
+                  <div style={{ fontSize: 17, fontWeight: 600, color: card.color, fontVariantNumeric: 'tabular-nums' }}>
                     {card.prefix}{(card as any).valueAbsolute !== undefined
                       ? (card as any).valueAbsolute.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                       : (card.value as number).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -377,13 +376,13 @@ const Trading = () => {
                     />
                     {searchResults.length > 0 && (
                       <div style={{
-                        border: '1px solid #f0f0f0',
-                        borderRadius: 8,
+                        border: `1px solid ${darkThemeTokens.border}`,
+                        borderRadius: 6,
                         marginTop: 4,
                         maxHeight: 200,
                         overflow: 'auto',
-                        background: '#fff',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                        background: darkThemeTokens.bgModal,
+                        boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
                       }}>
                         {searchResults.map((item) => (
                           <div
@@ -392,14 +391,14 @@ const Trading = () => {
                             style={{
                               padding: '8px 12px',
                               cursor: 'pointer',
-                              borderBottom: '1px solid #f5f5f5',
+                              borderBottom: `1px solid ${darkThemeTokens.border}`,
                               transition: 'background 0.15s',
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = '#f5f5f5')}
+                            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)')}
                             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                           >
-                            <Text strong style={{ fontSize: 13 }}>{item.name}</Text>
-                            <Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>{item.code}</Text>
+                            <Text strong style={{ fontSize: 13, color: darkThemeTokens.textHeading }}>{item.name}</Text>
+                            <Text style={{ marginLeft: 8, fontSize: 12, color: darkThemeTokens.textTertiary }}>{item.code}</Text>
                           </div>
                         ))}
                       </div>
@@ -408,19 +407,20 @@ const Trading = () => {
 
                   {selectedFund && (
                     <div style={{
-                      padding: '10px 14px',
-                      background: '#f6f8fa',
-                      borderRadius: 8,
+                      padding: '8px 12px',
+                      background: darkThemeTokens.bgInput,
+                      border: `1px solid ${darkThemeTokens.border}`,
+                      borderRadius: 6,
                       marginBottom: 16,
                     }}>
-                      <Text strong>{selectedFund.name}</Text>
-                      <Text type="secondary" style={{ marginLeft: 8 }}>{selectedFund.code}</Text>
+                      <Text strong style={{ color: darkThemeTokens.textHeading }}>{selectedFund.name}</Text>
+                      <Text style={{ marginLeft: 8, color: darkThemeTokens.textSecondary }}>{selectedFund.code}</Text>
                     </div>
                   )}
 
                   {/* 交易类型 */}
                   <div style={{ marginBottom: 16 }}>
-                    <Text strong style={{ display: 'block', marginBottom: 8 }}>交易类型</Text>
+                    <Text strong style={{ display: 'block', marginBottom: 8, color: darkThemeTokens.textHeading }}>交易类型</Text>
                     <Radio.Group
                       value={tradeType}
                       onChange={(e) => { setTradeType(e.target.value); setTradeAmount(0); setTradeShares(0); }}
@@ -435,7 +435,7 @@ const Trading = () => {
                   {/* 交易输入 */}
                   {tradeType === 'buy' ? (
                     <div style={{ marginBottom: 16 }}>
-                      <Text strong style={{ display: 'block', marginBottom: 8 }}>买入金额（元）</Text>
+                      <Text strong style={{ display: 'block', marginBottom: 8, color: darkThemeTokens.textHeading }}>买入金额（元）</Text>
                       <InputNumber
                         min={1}
                         max={account?.balance || 1000000}
@@ -444,22 +444,22 @@ const Trading = () => {
                         style={{ width: '100%' }}
                         placeholder="请输入买入金额"
                         formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                        parser={(value) => value!.replace(/,/g, '') as unknown as number}
+                        parser={(value) => (value ? Number(value.replace(/,/g, '')) : 0)}
                       />
                       {estimatedShares && (
-                        <Text type="secondary" style={{ fontSize: 12, marginTop: 4, display: 'block' }}>
+                        <Text style={{ fontSize: 12, marginTop: 4, display: 'block', color: darkThemeTokens.textSecondary }}>
                           预估获得份额：{estimatedShares} 份
                         </Text>
                       )}
                       {account && (
-                        <Text type="secondary" style={{ fontSize: 12 }}>
+                        <Text style={{ fontSize: 12, color: darkThemeTokens.textTertiary }}>
                           可用余额：¥{account.balance.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                         </Text>
                       )}
                     </div>
                   ) : (
                     <div style={{ marginBottom: 16 }}>
-                      <Text strong style={{ display: 'block', marginBottom: 8 }}>卖出份额</Text>
+                      <Text strong style={{ display: 'block', marginBottom: 8, color: darkThemeTokens.textHeading }}>卖出份额</Text>
                       <InputNumber
                         min={0.01}
                         max={positions.find(p => p.fund_code === selectedFund?.code)?.shares || 0}
@@ -470,19 +470,19 @@ const Trading = () => {
                         placeholder="请输入卖出份额"
                       />
                       {estimatedProceeds && (
-                        <Text type="secondary" style={{ fontSize: 12, marginTop: 4, display: 'block' }}>
+                        <Text style={{ fontSize: 12, marginTop: 4, display: 'block', color: darkThemeTokens.textSecondary }}>
                           预估收入：¥{estimatedProceeds}
                         </Text>
                       )}
                       {selectedFund && (
-                        <Text type="secondary" style={{ fontSize: 12 }}>
+                        <Text style={{ fontSize: 12, color: darkThemeTokens.textTertiary }}>
                           持有份额：{positions.find(p => p.fund_code === selectedFund.code)?.shares.toFixed(2) || 0} 份
                         </Text>
                       )}
                     </div>
                   )}
 
-                  <Divider style={{ margin: '16px 0' }} />
+                  <Divider style={{ margin: '16px 0', borderColor: darkThemeTokens.border }} />
 
                   <Button
                     type="primary"
@@ -492,11 +492,12 @@ const Trading = () => {
                     disabled={!selectedFund}
                     onClick={handleSubmit}
                     style={{
-                      height: 44,
-                      borderRadius: 8,
-                      fontWeight: 600,
-                      background: tradeType === 'buy' ? '#1677ff' : '#52c41a',
-                      borderColor: tradeType === 'buy' ? '#1677ff' : '#52c41a',
+                      height: 38,
+                      borderRadius: 6,
+                      fontWeight: 500,
+                      background: tradeType === 'buy' ? darkThemeTokens.primary : darkThemeTokens.down,
+                      borderColor: tradeType === 'buy' ? darkThemeTokens.primary : darkThemeTokens.down,
+                      color: '#ffffff',
                     }}
                   >
                     {tradeType === 'buy' ? '确认买入' : '确认卖出'}

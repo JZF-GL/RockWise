@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Radio, Card, Row, Col, Statistic, Space, Tag } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
+import { darkThemeTokens } from '../../styles/theme';
 
 export interface HistoryItem {
   date: string;
@@ -146,17 +147,20 @@ const GrowthRateChart: React.FC<GrowthRateChartProps> = ({
     if (isCum) {
       // 累计收益率折线图
       const isOverallRise = stats.cumReturn >= 0;
-      const lineColor = isOverallRise ? '#cf1322' : '#3f8600';
-      const areaColor = isOverallRise ? 'rgba(207, 19, 34, 0.15)' : 'rgba(63, 134, 0, 0.15)';
+      const lineColor = isOverallRise ? darkThemeTokens.up : darkThemeTokens.down;
+      const areaColor = isOverallRise ? darkThemeTokens.upBg : darkThemeTokens.downBg;
 
       return {
         title: fundName ? {
           text: `${fundName} 累计收益率走势`,
           left: 'center',
-          textStyle: { fontSize: 13, fontWeight: 'normal', color: '#595959' },
+          textStyle: { fontSize: 13, fontWeight: 'normal', color: darkThemeTokens.textSecondary },
         } : undefined,
         tooltip: {
           trigger: 'axis',
+          backgroundColor: darkThemeTokens.bgTooltip,
+          borderColor: darkThemeTokens.border,
+          textStyle: { color: darkThemeTokens.textPrimary },
           formatter: (params: any) => {
             const idx = params[0]?.dataIndex;
             const date = stats.chartDates[idx];
@@ -165,10 +169,10 @@ const GrowthRateChart: React.FC<GrowthRateChartProps> = ({
             const nav = stats.navValues[idx];
             return `
               <div style="font-size:12px;">
-                <div style="font-weight:600;margin-bottom:4px;color:#333;">${date}</div>
-                <div>区间累计收益: <span style="font-weight:600;color:${cumVal >= 0 ? '#cf1322' : '#3f8600'}">${cumVal >= 0 ? '+' : ''}${cumVal}%</span></div>
-                <div>当日涨跌幅: <span style="color:${dGrowth >= 0 ? '#cf1322' : '#3f8600'}">${dGrowth >= 0 ? '+' : ''}${dGrowth}%</span></div>
-                <div>对应净值: <b>${nav.toFixed(4)}</b></div>
+                <div style="font-weight:600;margin-bottom:4px;color:${darkThemeTokens.textHeading};">${date}</div>
+                <div style="color:${darkThemeTokens.textSecondary};">区间累计收益: <span style="font-weight:600;color:${cumVal >= 0 ? darkThemeTokens.up : darkThemeTokens.down}">${cumVal >= 0 ? '+' : ''}${cumVal}%</span></div>
+                <div style="color:${darkThemeTokens.textSecondary};">当日涨跌幅: <span style="color:${dGrowth >= 0 ? darkThemeTokens.up : darkThemeTokens.down}">${dGrowth >= 0 ? '+' : ''}${dGrowth}%</span></div>
+                <div style="color:${darkThemeTokens.textSecondary};">对应净值: <b style="color:${darkThemeTokens.primaryHover}">${nav.toFixed(4)}</b></div>
               </div>
             `;
           },
@@ -184,20 +188,23 @@ const GrowthRateChart: React.FC<GrowthRateChartProps> = ({
           type: 'category',
           boundaryGap: false,
           data: stats.chartDates,
+          axisLine: { lineStyle: { color: darkThemeTokens.border } },
           axisLabel: {
             fontSize: 11,
             rotate: stats.chartDates.length > 30 ? 30 : 0,
+            color: darkThemeTokens.textSecondary,
           },
         },
         yAxis: {
           type: 'value',
           axisLabel: {
             formatter: '{value}%',
+            color: darkThemeTokens.textSecondary,
           },
           splitLine: {
             lineStyle: {
               type: 'dashed',
-              color: '#f0f0f0',
+              color: 'rgba(255, 255, 255, 0.05)',
             },
           },
         },
@@ -206,10 +213,10 @@ const GrowthRateChart: React.FC<GrowthRateChartProps> = ({
             name: '累计收益率',
             type: 'line',
             data: currentValues,
-            smooth: true,
+            smooth: false,
             lineStyle: {
               color: lineColor,
-              width: 2.5,
+              width: 2.2,
             },
             areaStyle: {
               color: {
@@ -231,27 +238,38 @@ const GrowthRateChart: React.FC<GrowthRateChartProps> = ({
               silent: true,
               symbol: 'none',
               lineStyle: {
-                color: '#8c8c8c',
+                color: 'rgba(255, 255, 255, 0.12)',
                 type: 'dashed',
                 width: 1,
               },
-              data: [{ yAxis: 0, label: { formatter: '0%', position: 'end' } }],
+              data: [{ yAxis: 0, label: { formatter: '0%', color: darkThemeTokens.textTertiary, position: 'end' } }],
             },
             markPoint: {
               data: [
-                { type: 'max', name: '最高', itemStyle: { color: '#cf1322' } },
-                { type: 'min', name: '最低', itemStyle: { color: '#3f8600' } },
+                { type: 'max', name: '最高', itemStyle: { color: darkThemeTokens.up } },
+                { type: 'min', name: '最低', itemStyle: { color: darkThemeTokens.down } },
               ],
               label: {
                 fontSize: 10,
                 formatter: '{c}%',
+                color: '#ffffff',
               },
             },
           },
         ],
         dataZoom: [
           { type: 'inside', start: 0, end: 100 },
-          { type: 'slider', start: 0, end: 100, height: 18, bottom: 0 },
+          {
+            type: 'slider',
+            start: 0,
+            end: 100,
+            height: 18,
+            bottom: 0,
+            borderColor: darkThemeTokens.border,
+            backgroundColor: darkThemeTokens.bgInput,
+            fillerColor: 'rgba(77, 122, 176, 0.15)',
+            textStyle: { color: darkThemeTokens.textSecondary },
+          },
         ],
       };
     } else {
@@ -260,10 +278,13 @@ const GrowthRateChart: React.FC<GrowthRateChartProps> = ({
         title: fundName ? {
           text: `${fundName} 历史单日涨跌走势`,
           left: 'center',
-          textStyle: { fontSize: 13, fontWeight: 'normal', color: '#595959' },
+          textStyle: { fontSize: 13, fontWeight: 'normal', color: darkThemeTokens.textSecondary },
         } : undefined,
         tooltip: {
           trigger: 'axis',
+          backgroundColor: darkThemeTokens.bgTooltip,
+          borderColor: darkThemeTokens.border,
+          textStyle: { color: darkThemeTokens.textPrimary },
           formatter: (params: any) => {
             const idx = params[0]?.dataIndex;
             const date = stats.chartDates[idx];
@@ -271,9 +292,9 @@ const GrowthRateChart: React.FC<GrowthRateChartProps> = ({
             const nav = stats.navValues[idx];
             return `
               <div style="font-size:12px;">
-                <div style="font-weight:600;margin-bottom:4px;color:#333;">${date}</div>
-                <div>日涨跌幅: <span style="font-weight:600;color:${dGrowth >= 0 ? '#cf1322' : '#3f8600'}">${dGrowth >= 0 ? '+' : ''}${dGrowth}%</span></div>
-                <div>当日净值: <b>${nav.toFixed(4)}</b></div>
+                <div style="font-weight:600;margin-bottom:4px;color:${darkThemeTokens.textHeading};">${date}</div>
+                <div style="color:${darkThemeTokens.textSecondary};">日涨跌幅: <span style="font-weight:600;color:${dGrowth >= 0 ? darkThemeTokens.up : darkThemeTokens.down}">${dGrowth >= 0 ? '+' : ''}${dGrowth}%</span></div>
+                <div style="color:${darkThemeTokens.textSecondary};">当日净值: <b style="color:${darkThemeTokens.primaryHover}">${nav.toFixed(4)}</b></div>
               </div>
             `;
           },
@@ -288,20 +309,23 @@ const GrowthRateChart: React.FC<GrowthRateChartProps> = ({
         xAxis: {
           type: 'category',
           data: stats.chartDates,
+          axisLine: { lineStyle: { color: darkThemeTokens.border } },
           axisLabel: {
             fontSize: 11,
             rotate: stats.chartDates.length > 30 ? 30 : 0,
+            color: darkThemeTokens.textSecondary,
           },
         },
         yAxis: {
           type: 'value',
           axisLabel: {
             formatter: '{value}%',
+            color: darkThemeTokens.textSecondary,
           },
           splitLine: {
             lineStyle: {
               type: 'dashed',
-              color: '#f0f0f0',
+              color: 'rgba(255, 255, 255, 0.05)',
             },
           },
         },
@@ -312,23 +336,33 @@ const GrowthRateChart: React.FC<GrowthRateChartProps> = ({
             data: stats.dailyValues.map((val) => ({
               value: val,
               itemStyle: {
-                color: val >= 0 ? '#cf1322' : '#3f8600',
+                color: val >= 0 ? darkThemeTokens.up : darkThemeTokens.down,
               },
             })),
             markLine: {
               silent: true,
               symbol: 'none',
               lineStyle: {
-                color: '#8c8c8c',
+                color: 'rgba(255, 255, 255, 0.12)',
                 type: 'dashed',
               },
-              data: [{ yAxis: 0, label: { formatter: '0%' } }],
+              data: [{ yAxis: 0, label: { formatter: '0%', color: darkThemeTokens.textTertiary } }],
             },
           },
         ],
         dataZoom: [
           { type: 'inside', start: 0, end: 100 },
-          { type: 'slider', start: 0, end: 100, height: 18, bottom: 0 },
+          {
+            type: 'slider',
+            start: 0,
+            end: 100,
+            height: 18,
+            bottom: 0,
+            borderColor: darkThemeTokens.border,
+            backgroundColor: darkThemeTokens.bgInput,
+            fillerColor: 'rgba(77, 122, 176, 0.15)',
+            textStyle: { color: darkThemeTokens.textSecondary },
+          },
         ],
       };
     }
@@ -372,7 +406,11 @@ const GrowthRateChart: React.FC<GrowthRateChartProps> = ({
         </Space>
 
         <Space>
-          <Tag color={isRise ? 'red' : 'green'}>
+          <Tag style={{
+            background: 'rgba(255, 255, 255, 0.04)',
+            borderColor: darkThemeTokens.border,
+            color: darkThemeTokens.textSecondary,
+          }}>
             胜率: {stats.winRate}% (涨{stats.upCount}天/跌{stats.downCount}天)
           </Tag>
         </Space>
@@ -381,48 +419,48 @@ const GrowthRateChart: React.FC<GrowthRateChartProps> = ({
       {/* 量化指标小卡片 */}
       <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
         <Col xs={12} sm={6}>
-          <Card size="small" style={{ background: '#fafafa' }}>
+          <Card size="small" style={{ background: darkThemeTokens.bgInput, borderColor: darkThemeTokens.border }}>
             <Statistic
               title="区间累计收益率"
               value={stats.cumReturn}
               precision={2}
-              valueStyle={{ color: isRise ? '#cf1322' : '#3f8600', fontWeight: 'bold' }}
+              valueStyle={{ color: isRise ? darkThemeTokens.up : darkThemeTokens.down, fontWeight: 'bold' }}
               prefix={isRise ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
               suffix="%"
             />
           </Card>
         </Col>
         <Col xs={12} sm={6}>
-          <Card size="small" style={{ background: '#fafafa' }}>
+          <Card size="small" style={{ background: darkThemeTokens.bgInput, borderColor: darkThemeTokens.border }}>
             <Statistic
               title="区间最高点"
               value={stats.maxRate}
               precision={2}
-              valueStyle={{ color: '#cf1322' }}
+              valueStyle={{ color: darkThemeTokens.up }}
               suffix="%"
             />
-            <div style={{ fontSize: 11, color: '#8c8c8c', marginTop: 2 }}>{stats.maxRateDate}</div>
+            <div style={{ fontSize: 11, color: darkThemeTokens.textTertiary, marginTop: 2 }}>{stats.maxRateDate}</div>
           </Card>
         </Col>
         <Col xs={12} sm={6}>
-          <Card size="small" style={{ background: '#fafafa' }}>
+          <Card size="small" style={{ background: darkThemeTokens.bgInput, borderColor: darkThemeTokens.border }}>
             <Statistic
               title="区间最低点"
               value={stats.minRate}
               precision={2}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: darkThemeTokens.down }}
               suffix="%"
             />
-            <div style={{ fontSize: 11, color: '#8c8c8c', marginTop: 2 }}>{stats.minRateDate}</div>
+            <div style={{ fontSize: 11, color: darkThemeTokens.textTertiary, marginTop: 2 }}>{stats.minRateDate}</div>
           </Card>
         </Col>
         <Col xs={12} sm={6}>
-          <Card size="small" style={{ background: '#fafafa' }}>
+          <Card size="small" style={{ background: darkThemeTokens.bgInput, borderColor: darkThemeTokens.border }}>
             <Statistic
               title="区间最大回撤"
               value={stats.maxDrawdown}
               precision={2}
-              valueStyle={{ color: '#fa8c16' }}
+              valueStyle={{ color: darkThemeTokens.gold }}
               suffix="%"
             />
           </Card>

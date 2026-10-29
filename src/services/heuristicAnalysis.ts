@@ -22,10 +22,11 @@ interface DimensionScores {
 }
 
 // 将值映射到0-100范围
-function normalize(value: number, min: number, max: number): number {
+function _normalize(value: number, min: number, max: number): number {
   if (max === min) return 50;
   return Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
 }
+void _normalize;
 
 // 计算动量评分
 function calcMomentum(fund: FundRankingItem, allFunds: FundRankingItem[]): number {
@@ -218,8 +219,8 @@ export function calcMarketOverview(funds: FundRankingItem[]): MarketOverview {
   const totalFunds = funds.length;
   const avgGrowth = funds.reduce((s, f) => s + (f.dayGrowth || 0), 0) / totalFunds;
 
-  let topGainer = null;
-  let topLoser = null;
+  let topGainer: { code: string; name: string; growth: number } | null = null;
+  let topLoser: { code: string; name: string; growth: number } | null = null;
   funds.forEach(f => {
     if (!topGainer || (f.dayGrowth || 0) > topGainer.growth) {
       topGainer = { code: f.code, name: f.name, growth: f.dayGrowth || 0 };

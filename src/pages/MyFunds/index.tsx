@@ -13,6 +13,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { FundDataService } from '../../services/fundData';
 import { getMyFunds, saveMyFunds } from '../../utils/myFunds';
 import AIFundAnalysisModal from '../../components/AIFundAnalysisModal';
+import { darkThemeTokens } from '../../styles/theme';
 
 const { Text } = Typography;
 const fundDataService = FundDataService.getInstance();
@@ -93,61 +94,66 @@ const MyFunds = () => {
     {
       title: '自选基金',
       value: myCodes.length,
-      icon: <StarFilled style={{ fontSize: 20 }} />,
-      color: '#faad14',
-      bg: 'linear-gradient(135deg, #fff7e6, #fff1b8)',
+      icon: <StarFilled style={{ fontSize: 18 }} />,
+      color: darkThemeTokens.gold,
+      bg: darkThemeTokens.goldBg,
     },
     {
       title: '今日上涨',
       value: riseCount,
       suffix: `/ ${myCodes.length}`,
-      icon: <RiseOutlined style={{ fontSize: 20 }} />,
-      color: '#cf1322',
-      bg: 'linear-gradient(135deg, #fff2f0, #ffccc7)',
+      icon: <RiseOutlined style={{ fontSize: 18 }} />,
+      color: darkThemeTokens.up,
+      bg: darkThemeTokens.upBg,
     },
     {
       title: '今日下跌',
       value: fallCount,
       suffix: `/ ${myCodes.length}`,
-      icon: <FallOutlined style={{ fontSize: 20 }} />,
-      color: '#3f8600',
-      bg: 'linear-gradient(135deg, #f6ffed, #d9f7be)',
+      icon: <FallOutlined style={{ fontSize: 18 }} />,
+      color: darkThemeTokens.down,
+      bg: darkThemeTokens.downBg,
     },
   ];
 
   return (
     <div>
       {/* 统计卡片 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+      <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
         {statCards.map((card) => (
           <Col xs={24} sm={8} key={card.title}>
             <Card
-              bodyStyle={{ padding: '20px 24px' }}
-              style={{ borderRadius: 10, overflow: 'hidden' }}
+              bodyStyle={{ padding: '14px 18px' }}
+              style={{
+                borderRadius: 8,
+                background: darkThemeTokens.bgCard,
+                border: `1px solid ${darkThemeTokens.border}`,
+              }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 10,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 6,
                   background: card.bg,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: card.color,
                   flexShrink: 0,
+                  border: '1px solid rgba(255, 255, 255, 0.04)',
                 }}>
                   {card.icon}
                 </div>
                 <div>
-                  <Text type="secondary" style={{ fontSize: 13 }}>{card.title}</Text>
+                  <Text style={{ fontSize: 12, color: darkThemeTokens.textSecondary }}>{card.title}</Text>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
                     <Statistic
                       value={card.value}
-                      valueStyle={{ color: card.color, fontSize: 24, fontWeight: 600, lineHeight: '32px' }}
+                      valueStyle={{ color: card.color, fontSize: 20, fontWeight: 600, lineHeight: '28px' }}
                     />
                     {card.suffix && (
-                      <Text type="secondary" style={{ fontSize: 13 }}>{card.suffix}</Text>
+                      <Text style={{ fontSize: 12, color: darkThemeTokens.textTertiary }}>{card.suffix}</Text>
                     )}
                   </div>
                 </div>
@@ -172,7 +178,7 @@ const MyFunds = () => {
           添加基金
         </Button>
         <Space size={12}>
-          <Text type="secondary" style={{ fontSize: 12 }}>
+          <Text style={{ fontSize: 12, color: darkThemeTokens.textTertiary }}>
             上次更新: {lastUpdate || '未更新'}
           </Text>
           <Button icon={<ReloadOutlined />} onClick={handleRefresh} loading={loading}>
@@ -189,25 +195,25 @@ const MyFunds = () => {
         renderItem={(fund) => {
           const isRise = fund.dayGrowth > 0;
           const isFlat = fund.dayGrowth === 0;
+          const growthCol = isFlat ? darkThemeTokens.flat : isRise ? darkThemeTokens.up : darkThemeTokens.down;
           return (
             <List.Item
               key={fund.id}
               style={{
-                padding: '14px 18px',
+                padding: '12px 16px',
                 marginBottom: 8,
                 borderRadius: 8,
-                background: '#fff',
-                border: '1px solid rgba(0, 0, 0, 0.06)',
+                background: darkThemeTokens.bgCard,
+                border: `1px solid ${darkThemeTokens.border}`,
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+                transition: 'all 0.15s ease',
               }}
               onClick={() => navigate(`/fund/${fund.code}`, { state: { from: '/my-funds' } })}
               actions={[
                 <Button
                   type="text"
-                  icon={<RobotOutlined style={{ color: '#722ed1' }} />}
-                  style={{ color: '#722ed1', borderRadius: 6 }}
+                  icon={<RobotOutlined style={{ color: darkThemeTokens.ai }} />}
+                  style={{ color: darkThemeTokens.ai, borderRadius: 4, fontSize: 12 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedFundForAI(fund);
@@ -218,10 +224,9 @@ const MyFunds = () => {
                 </Button>,
                 <Button
                   type="text"
-                  danger
-                  icon={<StarFilled style={{ color: '#faad14', fontSize: 14 }} />}
+                  icon={<StarFilled style={{ color: darkThemeTokens.gold, fontSize: 13 }} />}
                   onClick={(e) => { e.stopPropagation(); handleRemoveFund(fund.code); }}
-                  style={{ borderRadius: 6 }}
+                  style={{ borderRadius: 4, color: darkThemeTokens.textSecondary, fontSize: 12 }}
                 >
                   移除
                 </Button>,
@@ -230,15 +235,17 @@ const MyFunds = () => {
               <List.Item.Meta
                 title={
                   <Space size={8}>
-                    <Text strong style={{ fontSize: 14 }}>{fund.name || fund.code}</Text>
+                    <Text strong style={{ fontSize: 13, color: darkThemeTokens.textHeading }}>{fund.name || fund.code}</Text>
                     <Tag
-                      color="blue"
                       style={{
                         margin: 0,
                         borderRadius: 4,
                         fontSize: 11,
                         lineHeight: '18px',
                         padding: '1px 6px',
+                        background: 'rgba(255, 255, 255, 0.04)',
+                        borderColor: darkThemeTokens.border,
+                        color: darkThemeTokens.textSecondary,
                       }}
                     >
                       {fund.code}
@@ -248,12 +255,12 @@ const MyFunds = () => {
                 description={
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 4 }}>
                     <Space size={6}>
-                      <Text type="secondary" style={{ fontSize: 13 }}>净值</Text>
+                      <Text style={{ fontSize: 12, color: darkThemeTokens.textSecondary }}>净值</Text>
                       <Text
                         strong
                         style={{
-                          color: isFlat ? '#595959' : isRise ? '#cf1322' : '#3f8600',
-                          fontSize: 14,
+                          color: growthCol,
+                          fontSize: 13,
                           fontVariantNumeric: 'tabular-nums',
                         }}
                       >
@@ -263,9 +270,9 @@ const MyFunds = () => {
                     {!isFlat && (
                       <Text
                         style={{
-                          color: isRise ? '#cf1322' : '#3f8600',
+                          color: growthCol,
                           fontWeight: 500,
-                          fontSize: 13,
+                          fontSize: 12,
                           fontVariantNumeric: 'tabular-nums',
                         }}
                       >
@@ -273,7 +280,7 @@ const MyFunds = () => {
                       </Text>
                     )}
                     {fund.company && (
-                      <Text type="secondary" style={{ fontSize: 12 }}>{fund.company}</Text>
+                      <Text style={{ fontSize: 11, color: darkThemeTokens.textTertiary }}>{fund.company}</Text>
                     )}
                   </div>
                 }
@@ -294,28 +301,27 @@ const MyFunds = () => {
       >
         <Input
           placeholder="输入基金名称或代码搜索"
-          prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+          prefix={<SearchOutlined style={{ color: darkThemeTokens.textTertiary }} />}
           value={searchKeyword}
           onChange={(e) => { setSearchKeyword(e.target.value); handleSearch(e.target.value); }}
           allowClear
-          style={{ marginBottom: 16, borderRadius: 8 }}
-          size="large"
+          style={{ marginBottom: 16, borderRadius: 6 }}
         />
         <List
           loading={searching}
           dataSource={searchResults}
-          locale={{ emptyText: '输入关键词搜索基金' }}
+          locale={{ emptyText: <span style={{ color: darkThemeTokens.textTertiary }}>输入关键词搜索基金</span> }}
           renderItem={(item) => (
             <List.Item
               actions={[
                 myCodes.includes(item.code) ? (
-                  <Tag color="green" style={{ borderRadius: 4 }}>已添加</Tag>
+                  <Tag style={{ background: darkThemeTokens.downBg, borderColor: darkThemeTokens.downBorder, color: darkThemeTokens.down, borderRadius: 4 }}>已添加</Tag>
                 ) : (
                   <Button
                     type="primary"
                     size="small"
                     onClick={() => handleAddFund(item.code, item.name)}
-                    style={{ borderRadius: 6 }}
+                    style={{ borderRadius: 4 }}
                   >
                     添加
                   </Button>
@@ -323,11 +329,11 @@ const MyFunds = () => {
               ]}
             >
               <List.Item.Meta
-                title={<Text style={{ fontSize: 14 }}>{item.name}</Text>}
+                title={<Text style={{ fontSize: 13, color: darkThemeTokens.textHeading }}>{item.name}</Text>}
                 description={
                   <Space size={6}>
-                    <Tag color="blue" style={{ margin: 0, borderRadius: 4, fontSize: 11 }}>{item.code}</Tag>
-                    <Text type="secondary" style={{ fontSize: 12 }}>{item.type}</Text>
+                    <Tag style={{ margin: 0, borderRadius: 4, fontSize: 11, background: 'rgba(255, 255, 255, 0.04)', borderColor: darkThemeTokens.border, color: darkThemeTokens.textSecondary }}>{item.code}</Tag>
+                    <Text style={{ fontSize: 12, color: darkThemeTokens.textSecondary }}>{item.type}</Text>
                   </Space>
                 }
               />

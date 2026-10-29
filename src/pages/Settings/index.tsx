@@ -3,6 +3,7 @@ import { Card, Form, InputNumber, Switch, Button, Space, Typography, message, Di
 import { SaveOutlined, SettingOutlined, BellOutlined, SafetyOutlined, ApiOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
 import { useSettingsStore, AI_PROVIDERS } from '../../stores/settingsStore';
 import { AIService } from '../../services/ai';
+import { darkThemeTokens } from '../../styles/theme';
 
 const { Title, Text } = Typography;
 
@@ -135,7 +136,7 @@ const Settings = () => {
                 max={1000000}
                 style={{ width: '100%' }}
                 formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={(value) => value!.replace(/,/g, '') as unknown as number}
+                parser={(value) => (value ? Number(value.replace(/,/g, '')) : 0) as any}
               />
             </Form.Item>
 
@@ -150,15 +151,15 @@ const Settings = () => {
                 max={1000000}
                 style={{ width: '100%' }}
                 formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={(value) => value!.replace(/,/g, '') as unknown as number}
+                parser={(value) => (value ? Number(value.replace(/,/g, '')) : 0) as any}
               />
             </Form.Item>
           </Space>
 
-          <Divider />
+          <Divider style={{ borderColor: darkThemeTokens.border }} />
 
-          <Title level={5}>止损止盈</Title>
-          <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+          <Title level={5} style={{ color: darkThemeTokens.textHeading }}>止损止盈</Title>
+          <Text style={{ display: 'block', marginBottom: 16, color: darkThemeTokens.textSecondary }}>
             设置止损止盈百分比，当基金涨跌达到设定值时触发提醒
           </Text>
 
@@ -253,8 +254,10 @@ const Settings = () => {
                 { value: 'custom', label: '自定义' },
               ]}
               onChange={(v) => {
-                const preset = AI_PROVIDERS[v];
-                aiForm.setFieldsValue({ aiApiUrl: preset.baseUrl, aiModel: preset.model });
+                const preset = (AI_PROVIDERS as any)[v];
+                if (preset) {
+                  aiForm.setFieldsValue({ aiApiUrl: preset.baseUrl, aiModel: preset.model });
+                }
               }}
             />
           </Form.Item>
@@ -267,7 +270,7 @@ const Settings = () => {
           >
             <Input
               placeholder="https://api.openai.com/v1"
-              addonBefore={<Text type="secondary" style={{ fontSize: 12 }}>URL</Text>}
+              addonBefore={<Text style={{ fontSize: 12, color: darkThemeTokens.textSecondary }}>URL</Text>}
             />
           </Form.Item>
 
@@ -275,8 +278,8 @@ const Settings = () => {
             label={
               <Space>
                 <span>API Key</span>
-                {testResult === 'success' && <CheckCircleOutlined style={{ color: '#52c41a' }} />}
-                {testResult === 'fail' && <CloseCircleOutlined style={{ color: '#ff4d4f' }} />}
+                {testResult === 'success' && <CheckCircleOutlined style={{ color: darkThemeTokens.down }} />}
+                {testResult === 'fail' && <CloseCircleOutlined style={{ color: darkThemeTokens.up }} />}
               </Space>
             }
             name="aiApiKey"

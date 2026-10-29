@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Radio, Space, Card, Row, Col, Statistic } from 'antd';
 import { RiseOutlined, FallOutlined } from '@ant-design/icons';
+import { darkThemeTokens } from '../../styles/theme';
 
 interface ChartData {
   dates: string[];
@@ -79,22 +80,25 @@ const NetValueChart: React.FC<NetValueChartProps> = ({
       title: {
         text: title,
         left: 'center',
-        textStyle: { fontSize: 13, fontWeight: 'normal', color: '#595959' },
+        textStyle: { fontSize: 13, fontWeight: 'normal', color: darkThemeTokens.textSecondary },
       },
       tooltip: {
         trigger: 'axis',
+        backgroundColor: darkThemeTokens.bgTooltip,
+        borderColor: darkThemeTokens.border,
+        textStyle: { color: darkThemeTokens.textPrimary },
         formatter: (params: any) => {
           const point = params[0];
           if (!point) return '';
           const val = point.value;
           const start = stats.startNav;
           const periodPct = start > 0 ? (((val - start) / start) * 100).toFixed(2) : '0.00';
-          const pColor = Number(periodPct) >= 0 ? '#cf1322' : '#3f8600';
+          const pColor = Number(periodPct) >= 0 ? darkThemeTokens.up : darkThemeTokens.down;
           return `
             <div style="font-size:12px;">
-              <div style="font-weight:600;margin-bottom:4px;color:#333;">${point.axisValue}</div>
-              <div>单位净值: <b style="color:#1677ff">${Number(val).toFixed(4)}</b></div>
-              <div>较区间起点: <span style="font-weight:600;color:${pColor}">${Number(periodPct) >= 0 ? '+' : ''}${periodPct}%</span></div>
+              <div style="font-weight:600;margin-bottom:4px;color:${darkThemeTokens.textHeading};">${point.axisValue}</div>
+              <div style="color:${darkThemeTokens.textSecondary};">单位净值: <b style="color:${darkThemeTokens.primaryHover}">${Number(val).toFixed(4)}</b></div>
+              <div style="color:${darkThemeTokens.textSecondary};">较区间起点: <span style="font-weight:600;color:${pColor}">${Number(periodPct) >= 0 ? '+' : ''}${periodPct}%</span></div>
             </div>
           `;
         },
@@ -110,9 +114,11 @@ const NetValueChart: React.FC<NetValueChartProps> = ({
         type: 'category',
         boundaryGap: false,
         data: filteredData.dates,
+        axisLine: { lineStyle: { color: darkThemeTokens.border } },
         axisLabel: {
           rotate: filteredData.dates.length > 30 ? 30 : 0,
           fontSize: 11,
+          color: darkThemeTokens.textSecondary,
         },
       },
       yAxis: {
@@ -120,11 +126,12 @@ const NetValueChart: React.FC<NetValueChartProps> = ({
         scale: true,
         axisLabel: {
           formatter: (value: number) => value.toFixed(3),
+          color: darkThemeTokens.textSecondary,
         },
         splitLine: {
           lineStyle: {
             type: 'dashed',
-            color: '#f0f0f0',
+            color: 'rgba(255, 255, 255, 0.05)',
           },
         },
       },
@@ -133,10 +140,10 @@ const NetValueChart: React.FC<NetValueChartProps> = ({
           name: '净值',
           type: 'line',
           data: filteredData.values,
-          smooth: true,
+          smooth: false,
           lineStyle: {
-            color: '#1677ff',
-            width: 2.2,
+            color: darkThemeTokens.primaryHover,
+            width: 2,
           },
           areaStyle: {
             color: {
@@ -146,22 +153,23 @@ const NetValueChart: React.FC<NetValueChartProps> = ({
               x2: 0,
               y2: 1,
               colorStops: [
-                { offset: 0, color: 'rgba(22, 119, 255, 0.25)' },
-                { offset: 1, color: 'rgba(22, 119, 255, 0.02)' },
+                { offset: 0, color: 'rgba(77, 122, 176, 0.22)' },
+                { offset: 1, color: 'rgba(77, 122, 176, 0.01)' },
               ],
             },
           },
           itemStyle: {
-            color: '#1677ff',
+            color: darkThemeTokens.primaryHover,
           },
           markPoint: {
             data: [
-              { type: 'max', name: '最高', itemStyle: { color: '#cf1322' } },
-              { type: 'min', name: '最低', itemStyle: { color: '#3f8600' } },
+              { type: 'max', name: '最高', itemStyle: { color: darkThemeTokens.up } },
+              { type: 'min', name: '最低', itemStyle: { color: darkThemeTokens.down } },
             ],
             label: {
               fontSize: 10,
               formatter: '{c}',
+              color: '#ffffff',
             },
           },
         },
@@ -178,6 +186,10 @@ const NetValueChart: React.FC<NetValueChartProps> = ({
           end: 100,
           height: 18,
           bottom: 2,
+          borderColor: darkThemeTokens.border,
+          backgroundColor: darkThemeTokens.bgInput,
+          fillerColor: 'rgba(77, 122, 176, 0.15)',
+          textStyle: { color: darkThemeTokens.textSecondary },
         },
       ],
     };
@@ -188,7 +200,7 @@ const NetValueChart: React.FC<NetValueChartProps> = ({
       {/* 周期切换与数据统计 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
         <Space>
-          <span style={{ fontSize: 13, color: '#666', fontWeight: 500 }}>走势周期:</span>
+          <span style={{ fontSize: 12, color: darkThemeTokens.textSecondary, fontWeight: 500 }}>走势周期:</span>
           <Radio.Group
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
@@ -206,44 +218,44 @@ const NetValueChart: React.FC<NetValueChartProps> = ({
       {/* 统计指标卡 */}
       <Row gutter={[12, 12]} style={{ marginBottom: 14 }}>
         <Col xs={12} sm={6}>
-          <Card size="small" style={{ background: '#fafafa' }}>
+          <Card size="small" style={{ background: darkThemeTokens.bgInput, borderColor: darkThemeTokens.border }}>
             <Statistic
               title="区间涨跌幅"
               value={stats.growth}
               precision={2}
-              valueStyle={{ color: isRise ? '#cf1322' : '#3f8600', fontWeight: 'bold' }}
+              valueStyle={{ color: isRise ? darkThemeTokens.up : darkThemeTokens.down, fontWeight: 'bold' }}
               prefix={isRise ? <RiseOutlined /> : <FallOutlined />}
               suffix="%"
             />
           </Card>
         </Col>
         <Col xs={12} sm={6}>
-          <Card size="small" style={{ background: '#fafafa' }}>
+          <Card size="small" style={{ background: darkThemeTokens.bgInput, borderColor: darkThemeTokens.border }}>
             <Statistic
               title="区间最高净值"
               value={stats.maxNav}
               precision={4}
-              valueStyle={{ color: '#cf1322' }}
+              valueStyle={{ color: darkThemeTokens.up }}
             />
           </Card>
         </Col>
         <Col xs={12} sm={6}>
-          <Card size="small" style={{ background: '#fafafa' }}>
+          <Card size="small" style={{ background: darkThemeTokens.bgInput, borderColor: darkThemeTokens.border }}>
             <Statistic
               title="区间最低净值"
               value={stats.minNav}
               precision={4}
-              valueStyle={{ color: '#3f8600' }}
+              valueStyle={{ color: darkThemeTokens.down }}
             />
           </Card>
         </Col>
         <Col xs={12} sm={6}>
-          <Card size="small" style={{ background: '#fafafa' }}>
+          <Card size="small" style={{ background: darkThemeTokens.bgInput, borderColor: darkThemeTokens.border }}>
             <Statistic
               title="起点净值"
               value={stats.startNav}
               precision={4}
-              valueStyle={{ color: '#595959' }}
+              valueStyle={{ color: darkThemeTokens.textSecondary }}
             />
           </Card>
         </Col>

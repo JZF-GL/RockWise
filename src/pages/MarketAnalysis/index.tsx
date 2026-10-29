@@ -1,16 +1,17 @@
 import { useEffect } from 'react';
 import {
-  Card, Typography, Button, Space, Tag, Table, Tabs, Row, Col, Statistic,
+  Card, Typography, Button, Tag, Table, Tabs, Row, Col,
   Empty, Progress, Spin,
 } from 'antd';
 import {
-  ReloadOutlined, RiseOutlined, FallOutlined,
+  RiseOutlined, FallOutlined,
   ThunderboltOutlined, SafetyOutlined, BarChartOutlined, LineChartOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useMarketStore } from '../../stores/marketStore';
+import { darkThemeTokens } from '../../styles/theme';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 const MarketAnalysis = () => {
   const navigate = useNavigate();
@@ -23,9 +24,9 @@ const MarketAnalysis = () => {
     fetchAnalysis();
   }, []);
 
-  // 情绪颜色
-  const sentimentColor = overview?.sentiment === 'positive' ? '#52c41a'
-    : overview?.sentiment === 'negative' ? '#ff4d4f' : '#faad14';
+  // 情绪颜色 (低调雅致)
+  const sentimentColor = overview?.sentiment === 'positive' ? darkThemeTokens.up
+    : overview?.sentiment === 'negative' ? darkThemeTokens.down : darkThemeTokens.gold;
   const sentimentText = overview?.sentiment === 'positive' ? '市场向好'
     : overview?.sentiment === 'negative' ? '市场走弱' : '市场平稳';
 
@@ -34,35 +35,35 @@ const MarketAnalysis = () => {
     {
       title: '分析基金数',
       value: overview.totalFunds,
-      icon: <LineChartOutlined style={{ fontSize: 20 }} />,
-      color: '#1677ff',
-      bg: 'linear-gradient(135deg, #e6f4ff, #bae0ff)',
+      icon: <LineChartOutlined style={{ fontSize: 18 }} />,
+      color: darkThemeTokens.primaryHover,
+      bg: darkThemeTokens.primaryBg,
     },
     {
       title: '今日平均涨幅',
       value: overview.avgGrowth,
       suffix: '%',
-      icon: <BarChartOutlined style={{ fontSize: 20 }} />,
-      color: overview.avgGrowth >= 0 ? '#cf1322' : '#3f8600',
-      bg: overview.avgGrowth >= 0 ? 'linear-gradient(135deg, #fff2f0, #ffccc7)' : 'linear-gradient(135deg, #f6ffed, #d9f7be)',
+      icon: <BarChartOutlined style={{ fontSize: 18 }} />,
+      color: overview.avgGrowth >= 0 ? darkThemeTokens.up : darkThemeTokens.down,
+      bg: overview.avgGrowth >= 0 ? darkThemeTokens.upBg : darkThemeTokens.downBg,
     },
     {
       title: '涨幅最大',
       value: overview.topGainer?.growth,
       suffix: '%',
       sub: overview.topGainer?.name,
-      icon: <RiseOutlined style={{ fontSize: 20 }} />,
-      color: '#cf1322',
-      bg: 'linear-gradient(135deg, #fff2f0, #ffccc7)',
+      icon: <RiseOutlined style={{ fontSize: 18 }} />,
+      color: darkThemeTokens.up,
+      bg: darkThemeTokens.upBg,
     },
     {
       title: '跌幅最大',
       value: overview.topLoser?.growth,
       suffix: '%',
       sub: overview.topLoser?.name,
-      icon: <FallOutlined style={{ fontSize: 20 }} />,
-      color: '#3f8600',
-      bg: 'linear-gradient(135deg, #f6ffed, #d9f7be)',
+      icon: <FallOutlined style={{ fontSize: 18 }} />,
+      color: darkThemeTokens.down,
+      bg: darkThemeTokens.downBg,
     },
   ] : [];
 
@@ -71,17 +72,21 @@ const MarketAnalysis = () => {
     {
       title: '排名',
       width: 50,
-      render: (_: any, __: any, index: number) => (
-        <div style={{
-          width: 24, height: 24, borderRadius: 6,
-          background: index < 3 ? ['#ff4d4f', '#fa8c16', '#faad14'][index] : '#f0f0f0',
-          color: index < 3 ? '#fff' : '#8c8c8c',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 12, fontWeight: 600,
-        }}>
-          {index + 1}
-        </div>
-      ),
+      render: (_: any, __: any, index: number) => {
+        const bgRank = index === 0 ? 'rgba(200, 94, 104, 0.2)' : index === 1 ? 'rgba(184, 148, 77, 0.2)' : index === 2 ? 'rgba(77, 122, 176, 0.2)' : 'rgba(255, 255, 255, 0.04)';
+        const colRank = index === 0 ? darkThemeTokens.up : index === 1 ? darkThemeTokens.gold : index === 2 ? darkThemeTokens.primaryHover : darkThemeTokens.textTertiary;
+        return (
+          <div style={{
+            width: 22, height: 22, borderRadius: 4,
+            background: bgRank,
+            color: colRank,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, fontWeight: 600,
+          }}>
+            {index + 1}
+          </div>
+        );
+      },
     },
     {
       title: '基金名称',
@@ -90,9 +95,9 @@ const MarketAnalysis = () => {
       ellipsis: true,
       render: (name: string, record: any) => (
         <div>
-          <Text strong style={{ fontSize: 13 }}>{name}</Text>
+          <Text strong style={{ fontSize: 13, color: darkThemeTokens.textHeading }}>{name}</Text>
           <br />
-          <Text type="secondary" style={{ fontSize: 11 }}>{record.fundCode}</Text>
+          <Text style={{ fontSize: 11, color: darkThemeTokens.textTertiary }}>{record.fundCode}</Text>
         </div>
       ),
     },
@@ -101,7 +106,7 @@ const MarketAnalysis = () => {
       dataIndex: 'fundType',
       width: 70,
       render: (type: string) => (
-        <Tag style={{ margin: 0, borderRadius: 4, fontSize: 11 }}>{type}</Tag>
+        <Tag style={{ margin: 0, borderRadius: 4, fontSize: 11, background: 'rgba(255, 255, 255, 0.04)', borderColor: darkThemeTokens.border, color: darkThemeTokens.textSecondary }}>{type}</Tag>
       ),
     },
     {
@@ -115,9 +120,9 @@ const MarketAnalysis = () => {
             size="small"
             strokeColor={record.levelColor}
             showInfo={false}
-            style={{ width: 50, marginBottom: 0 }}
+            style={{ width: 44, marginBottom: 0 }}
           />
-          <Text strong style={{ color: record.levelColor, fontSize: 13 }}>{score}</Text>
+          <Text strong style={{ color: record.levelColor, fontSize: 12 }}>{score}</Text>
         </div>
       ),
     },
@@ -137,7 +142,7 @@ const MarketAnalysis = () => {
       width: 72,
       align: 'right' as const,
       render: (v: number) => (
-        <Text style={{ color: v > 0 ? '#cf1322' : v < 0 ? '#3f8600' : '#8c8c8c', fontVariantNumeric: 'tabular-nums' }}>
+        <Text style={{ color: v > 0 ? darkThemeTokens.up : v < 0 ? darkThemeTokens.down : darkThemeTokens.flat, fontVariantNumeric: 'tabular-nums' }}>
           {v > 0 ? '+' : ''}{(v || 0).toFixed(2)}%
         </Text>
       ),
@@ -148,7 +153,7 @@ const MarketAnalysis = () => {
       width: 72,
       align: 'right' as const,
       render: (v: number) => (
-        <Text style={{ color: v > 0 ? '#cf1322' : v < 0 ? '#3f8600' : '#8c8c8c', fontVariantNumeric: 'tabular-nums' }}>
+        <Text style={{ color: v > 0 ? darkThemeTokens.up : v < 0 ? darkThemeTokens.down : darkThemeTokens.flat, fontVariantNumeric: 'tabular-nums' }}>
           {v > 0 ? '+' : ''}{(v || 0).toFixed(2)}%
         </Text>
       ),
@@ -156,11 +161,11 @@ const MarketAnalysis = () => {
     {
       title: '操作',
       width: 70,
-      render: (_: any, record: any) => (
+      render: () => (
         <Button
           type="primary"
           size="small"
-          style={{ borderRadius: 6, fontSize: 12 }}
+          style={{ borderRadius: 4, fontSize: 12 }}
           onClick={() => navigate(`/trading`)}
         >
           买入
@@ -175,34 +180,34 @@ const MarketAnalysis = () => {
       title: '序号',
       width: 50,
       render: (_: any, __: any, index: number) => (
-        <Text type="secondary" style={{ fontSize: 12 }}>{index + 1}</Text>
+        <Text style={{ fontSize: 12, color: darkThemeTokens.textTertiary }}>{index + 1}</Text>
       ),
     },
     {
       title: '基金代码',
       dataIndex: 'code',
       width: 88,
-      render: (code: string) => <Text style={{ color: '#1677ff' }}>{code}</Text>,
+      render: (code: string) => <Text style={{ color: darkThemeTokens.textLink }}>{code}</Text>,
     },
     {
       title: '基金名称',
       dataIndex: 'name',
       width: 160,
       ellipsis: true,
-      render: (name: string) => <Text strong style={{ fontSize: 13 }}>{name}</Text>,
+      render: (name: string) => <Text strong style={{ fontSize: 13, color: darkThemeTokens.textHeading }}>{name}</Text>,
     },
     {
       title: '类型',
       dataIndex: 'type',
       width: 70,
-      render: (type: string) => <Tag style={{ margin: 0, borderRadius: 4, fontSize: 11 }}>{type}</Tag>,
+      render: (type: string) => <Tag style={{ margin: 0, borderRadius: 4, fontSize: 11, background: 'rgba(255, 255, 255, 0.04)', borderColor: darkThemeTokens.border, color: darkThemeTokens.textSecondary }}>{type}</Tag>,
     },
     {
       title: '最新净值',
       dataIndex: 'nav',
       width: 80,
       align: 'right' as const,
-      render: (v: number) => <Text style={{ fontVariantNumeric: 'tabular-nums' }}>{v?.toFixed(4) || '--'}</Text>,
+      render: (v: number) => <Text style={{ fontVariantNumeric: 'tabular-nums', color: darkThemeTokens.textPrimary }}>{v?.toFixed(4) || '--'}</Text>,
     },
     {
       title: '日涨幅',
@@ -210,7 +215,7 @@ const MarketAnalysis = () => {
       width: 72,
       align: 'right' as const,
       render: (v: number) => (
-        <Text style={{ color: v > 0 ? '#cf1322' : v < 0 ? '#3f8600' : '#8c8c8c' }}>
+        <Text style={{ color: v > 0 ? darkThemeTokens.up : v < 0 ? darkThemeTokens.down : darkThemeTokens.flat }}>
           {v > 0 ? '+' : ''}{(v || 0).toFixed(2)}%
         </Text>
       ),
@@ -221,7 +226,7 @@ const MarketAnalysis = () => {
       width: 72,
       align: 'right' as const,
       render: (v: number) => (
-        <Text style={{ color: v > 0 ? '#cf1322' : v < 0 ? '#3f8600' : '#8c8c8c' }}>
+        <Text style={{ color: v > 0 ? darkThemeTokens.up : v < 0 ? darkThemeTokens.down : darkThemeTokens.flat }}>
           {v > 0 ? '+' : ''}{(v || 0).toFixed(2)}%
         </Text>
       ),
@@ -232,7 +237,7 @@ const MarketAnalysis = () => {
       width: 72,
       align: 'right' as const,
       render: (v: number) => (
-        <Text style={{ color: v > 0 ? '#cf1322' : v < 0 ? '#3f8600' : '#8c8c8c' }}>
+        <Text style={{ color: v > 0 ? darkThemeTokens.up : v < 0 ? darkThemeTokens.down : darkThemeTokens.flat }}>
           {v > 0 ? '+' : ''}{(v || 0).toFixed(2)}%
         </Text>
       ),
@@ -242,24 +247,25 @@ const MarketAnalysis = () => {
   // 板块趋势列
   const sectorColumns = [
     {
-      title: '板块',
+      title: '板块类型',
       dataIndex: 'type',
-      width: 100,
-      render: (type: string) => <Text strong>{type}</Text>,
+      width: 90,
+      render: (type: string) => <Tag style={{ borderRadius: 4, background: 'rgba(255, 255, 255, 0.04)', borderColor: darkThemeTokens.border, color: darkThemeTokens.textSecondary }}>{type}</Tag>,
     },
     {
       title: '基金数量',
       dataIndex: 'count',
-      width: 80,
-      align: 'center' as const,
+      width: 70,
+      align: 'right' as const,
+      render: (v: number) => <Text style={{ color: darkThemeTokens.textSecondary }}>{v}</Text>,
     },
     {
-      title: '近1周均涨',
-      dataIndex: 'avgWeekGrowth',
+      title: '今日均涨',
+      dataIndex: 'avgDayGrowth',
       width: 90,
       align: 'right' as const,
       render: (v: number) => (
-        <Text style={{ color: v > 0 ? '#cf1322' : v < 0 ? '#3f8600' : '#8c8c8c', fontVariantNumeric: 'tabular-nums' }}>
+        <Text style={{ color: v > 0 ? darkThemeTokens.up : v < 0 ? darkThemeTokens.down : darkThemeTokens.flat, fontVariantNumeric: 'tabular-nums' }}>
           {v > 0 ? '+' : ''}{v.toFixed(2)}%
         </Text>
       ),
@@ -270,7 +276,7 @@ const MarketAnalysis = () => {
       width: 90,
       align: 'right' as const,
       render: (v: number) => (
-        <Text style={{ color: v > 0 ? '#cf1322' : v < 0 ? '#3f8600' : '#8c8c8c', fontVariantNumeric: 'tabular-nums' }}>
+        <Text style={{ color: v > 0 ? darkThemeTokens.up : v < 0 ? darkThemeTokens.down : darkThemeTokens.flat, fontVariantNumeric: 'tabular-nums' }}>
           {v > 0 ? '+' : ''}{v.toFixed(2)}%
         </Text>
       ),
@@ -281,7 +287,7 @@ const MarketAnalysis = () => {
       width: 90,
       align: 'right' as const,
       render: (v: number) => (
-        <Text style={{ color: v > 0 ? '#cf1322' : v < 0 ? '#3f8600' : '#8c8c8c', fontVariantNumeric: 'tabular-nums' }}>
+        <Text style={{ color: v > 0 ? darkThemeTokens.up : v < 0 ? darkThemeTokens.down : darkThemeTokens.flat, fontVariantNumeric: 'tabular-nums' }}>
           {v > 0 ? '+' : ''}{v.toFixed(2)}%
         </Text>
       ),
@@ -294,13 +300,14 @@ const MarketAnalysis = () => {
       title: '基金代码',
       dataIndex: 'fundCode',
       width: 88,
-      render: (code: string) => <Text style={{ color: '#1677ff' }}>{code}</Text>,
+      render: (code: string) => <Text style={{ color: darkThemeTokens.textLink }}>{code}</Text>,
     },
     {
       title: '基金名称',
       dataIndex: 'fundName',
       width: 160,
       ellipsis: true,
+      render: (name: string) => <Text style={{ color: darkThemeTokens.textHeading }}>{name}</Text>,
     },
     {
       title: '年化波动率',
@@ -308,7 +315,7 @@ const MarketAnalysis = () => {
       width: 90,
       align: 'right' as const,
       render: (v: number) => {
-        const color = v < 10 ? '#52c41a' : v < 20 ? '#faad14' : '#ff4d4f';
+        const color = v < 10 ? darkThemeTokens.down : v < 20 ? darkThemeTokens.gold : darkThemeTokens.up;
         return <Text style={{ color }}>{v.toFixed(2)}%</Text>;
       },
     },
@@ -318,7 +325,7 @@ const MarketAnalysis = () => {
       width: 80,
       align: 'right' as const,
       render: (v: number) => {
-        const color = v < 5 ? '#52c41a' : v < 15 ? '#faad14' : '#ff4d4f';
+        const color = v < 5 ? darkThemeTokens.down : v < 15 ? darkThemeTokens.gold : darkThemeTokens.up;
         return <Text style={{ color }}>-{v.toFixed(2)}%</Text>;
       },
     },
@@ -328,7 +335,7 @@ const MarketAnalysis = () => {
       width: 80,
       align: 'right' as const,
       render: (v: number) => {
-        const color = v > 1 ? '#52c41a' : v > 0 ? '#faad14' : '#ff4d4f';
+        const color = v > 1 ? darkThemeTokens.down : v > 0 ? darkThemeTokens.gold : darkThemeTokens.up;
         return <Text strong style={{ color }}>{v.toFixed(2)}</Text>;
       },
     },
@@ -337,25 +344,26 @@ const MarketAnalysis = () => {
   return (
     <div>
       {/* 市场概览 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+      <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
         {overviewCards.map((card) => (
           <Col xs={24} sm={12} lg={6} key={card.title}>
-            <Card bodyStyle={{ padding: '16px 18px' }} style={{ borderRadius: 10 }}>
+            <Card bodyStyle={{ padding: '14px 16px' }} style={{ borderRadius: 8, background: darkThemeTokens.bgCard, border: `1px solid ${darkThemeTokens.border}` }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{
-                  width: 40, height: 40, borderRadius: 10,
+                  width: 36, height: 36, borderRadius: 6,
                   background: card.bg, display: 'flex',
                   alignItems: 'center', justifyContent: 'center',
                   color: card.color, flexShrink: 0,
+                  border: '1px solid rgba(255, 255, 255, 0.04)',
                 }}>
                   {card.icon}
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <Text type="secondary" style={{ fontSize: 12 }}>{card.title}</Text>
-                  <div style={{ fontSize: 18, fontWeight: 600, color: card.color, fontVariantNumeric: 'tabular-nums' }}>
+                  <Text style={{ fontSize: 12, color: darkThemeTokens.textSecondary }}>{card.title}</Text>
+                  <div style={{ fontSize: 17, fontWeight: 600, color: card.color, fontVariantNumeric: 'tabular-nums' }}>
                     {typeof card.value === 'number' ? `${card.value >= 0 && card.title.includes('涨幅') ? '+' : ''}${card.value.toFixed(2)}${card.suffix || ''}` : card.value}
                   </div>
-                  {card.sub && <Text type="secondary" style={{ fontSize: 11 }} ellipsis>{card.sub}</Text>}
+                  {card.sub && <Text style={{ fontSize: 11, color: darkThemeTokens.textTertiary }} ellipsis>{card.sub}</Text>}
                 </div>
               </div>
             </Card>
@@ -365,11 +373,11 @@ const MarketAnalysis = () => {
 
       {/* 市场情绪条 */}
       {overview && (
-        <Card bodyStyle={{ padding: '12px 20px' }} style={{ marginBottom: 16, borderRadius: 10 }}>
+        <Card bodyStyle={{ padding: '10px 16px' }} style={{ marginBottom: 12, borderRadius: 8, background: darkThemeTokens.bgCard, border: `1px solid ${darkThemeTokens.border}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <ThunderboltOutlined style={{ color: sentimentColor, fontSize: 16 }} />
-            <Text strong style={{ fontSize: 13 }}>市场情绪：</Text>
-            <Tag color={sentimentColor} style={{ borderRadius: 4, fontWeight: 500 }}>{sentimentText}</Tag>
+            <ThunderboltOutlined style={{ color: sentimentColor, fontSize: 15 }} />
+            <Text strong style={{ fontSize: 12, color: darkThemeTokens.textHeading }}>市场情绪：</Text>
+            <Tag color={sentimentColor} style={{ borderRadius: 4, fontWeight: 500, margin: 0 }}>{sentimentText}</Tag>
             <div style={{ flex: 1 }}>
               <Progress
                 percent={overview.sentimentScore}
@@ -378,7 +386,7 @@ const MarketAnalysis = () => {
                 size="small"
               />
             </div>
-            <Text type="secondary" style={{ fontSize: 12 }}>{overview.sentimentScore}% 基金上涨</Text>
+            <Text style={{ fontSize: 12, color: darkThemeTokens.textSecondary }}>{overview.sentimentScore}% 基金上涨</Text>
           </div>
         </Card>
       )}
@@ -399,13 +407,13 @@ const MarketAnalysis = () => {
                     columns={recommendationColumns}
                     dataSource={recommendations}
                     rowKey="fundCode"
-                    pagination={{ pageSize: 10, showTotal: (t) => <Text type="secondary">共 {t} 只基金</Text>, size: 'small' }}
+                    pagination={{ pageSize: 10, showTotal: (t) => <Text style={{ color: darkThemeTokens.textSecondary, fontSize: 12 }}>共 {t} 只基金</Text>, size: 'small' }}
                     locale={{ emptyText: <Empty description="暂无推荐数据" /> }}
                     size="small"
                     scroll={{ x: 750 }}
                   />
-                  <div style={{ padding: '8px 16px', borderTop: '1px solid #f0f0f0' }}>
-                    <Text type="secondary" style={{ fontSize: 11 }}>
+                  <div style={{ padding: '8px 16px', borderTop: `1px solid ${darkThemeTokens.border}` }}>
+                    <Text style={{ fontSize: 11, color: darkThemeTokens.textTertiary }}>
                       推荐算法基于动量、风险、一致性、价值四维度加权评分，仅供参考，不构成投资建议。
                     </Text>
                   </div>

@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { FundDataService } from '../../services/fundData';
 import { getMyFunds, addFundToMyFunds, removeFundFromMyFunds } from '../../utils/myFunds';
 import AIFundAnalysisModal from '../../components/AIFundAnalysisModal';
+import { darkThemeTokens, getGrowthColor } from '../../styles/theme';
 
 const { Text } = Typography;
 
@@ -125,21 +126,15 @@ const FundMarket = () => {
     setPage(1);
   };
 
-  const growthColor = (v: number) => {
-    if (v > 0) return '#cf1322';
-    if (v < 0) return '#3f8600';
-    return '#8c8c8c';
-  };
-
   const growthText = (v: number) => {
     if (v === undefined || v === null || isNaN(v)) {
-      return <Text style={{ color: '#8c8c8c' }}>--</Text>;
+      return <Text style={{ color: darkThemeTokens.textTertiary }}>--</Text>;
     }
     if (v === 0) {
-      return <Text style={{ color: '#8c8c8c', fontVariantNumeric: 'tabular-nums' }}>0.00%</Text>;
+      return <Text style={{ color: darkThemeTokens.flat, fontVariantNumeric: 'tabular-nums' }}>0.00%</Text>;
     }
     return (
-      <Text style={{ color: growthColor(v), fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
+      <Text style={{ color: getGrowthColor(v), fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>
         {v > 0 ? '+' : ''}{v.toFixed(2)}%
       </Text>
     );
@@ -176,7 +171,7 @@ const FundMarket = () => {
         <Text
           strong
           style={{
-            color: '#1677ff',
+            color: darkThemeTokens.textLink,
             cursor: 'pointer',
             fontVariantNumeric: 'tabular-nums',
           }}
@@ -193,7 +188,7 @@ const FundMarket = () => {
       fixed: 'left' as const,
       ellipsis: true,
       render: (name: string) => (
-        <Text strong style={{ fontSize: 13 }}>{name}</Text>
+        <Text strong style={{ fontSize: 13, color: darkThemeTokens.textHeading }}>{name}</Text>
       ),
     },
     {
@@ -208,6 +203,9 @@ const FundMarket = () => {
             fontSize: 11,
             lineHeight: '18px',
             padding: '1px 6px',
+            background: 'rgba(255, 255, 255, 0.04)',
+            borderColor: darkThemeTokens.border,
+            color: darkThemeTokens.textSecondary,
           }}
         >
           {type}
@@ -220,7 +218,7 @@ const FundMarket = () => {
       width: 88,
       align: 'right' as const,
       render: (nav: number) => (
-        <Text style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+        <Text style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500, color: darkThemeTokens.textPrimary }}>
           {nav ? nav.toFixed(4) : '--'}
         </Text>
       ),
@@ -266,13 +264,13 @@ const FundMarket = () => {
                 type={isAdded ? 'default' : 'primary'}
                 ghost={!isAdded}
                 size="small"
-                icon={isAdded ? <StarFilled style={{ color: '#faad14' }} /> : <StarOutlined />}
+                icon={isAdded ? <StarFilled style={{ color: darkThemeTokens.gold }} /> : <StarOutlined />}
                 style={
                   isAdded
                     ? {
-                        borderColor: '#ffd591',
-                        color: '#d48806',
-                        background: '#fffbe6',
+                        borderColor: darkThemeTokens.goldBorder,
+                        color: darkThemeTokens.gold,
+                        background: darkThemeTokens.goldBg,
                         fontSize: 12,
                         padding: '0 8px',
                       }
@@ -287,7 +285,7 @@ const FundMarket = () => {
               type="link"
               size="small"
               icon={<RobotOutlined />}
-              style={{ color: '#722ed1', padding: '0 4px', fontWeight: 500 }}
+              style={{ color: darkThemeTokens.ai, padding: '0 4px', fontWeight: 500 }}
               onClick={(e) => handleOpenAI(e, record)}
             >
               AI分析
@@ -295,7 +293,7 @@ const FundMarket = () => {
             <Button
               type="link"
               size="small"
-              style={{ padding: '0 4px', fontWeight: 500 }}
+              style={{ color: darkThemeTokens.textLink, padding: '0 4px', fontWeight: 500 }}
               onClick={(e) => {
                 e.stopPropagation();
                 navigate(`/fund/${record.code}`, { state: { from: '/' } });
@@ -315,16 +313,15 @@ const FundMarket = () => {
       <div style={{
         marginBottom: 12,
         flexShrink: 0,
-        background: '#fff',
+        background: darkThemeTokens.bgCard,
         borderRadius: 8,
         padding: '12px 16px',
-        border: '1px solid rgba(0, 0, 0, 0.06)',
-        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+        border: `1px solid ${darkThemeTokens.border}`,
       }}>
         <Space wrap size={10}>
           <Input
             placeholder="搜索基金名称、代码或拼音缩写"
-            prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+            prefix={<SearchOutlined style={{ color: darkThemeTokens.textTertiary }} />}
             value={keyword}
             onChange={(e) => {
               const val = e.target.value;
@@ -381,10 +378,9 @@ const FundMarket = () => {
       <div style={{
         flex: 1,
         overflow: 'hidden',
-        background: '#fff',
+        background: darkThemeTokens.bgCard,
         borderRadius: 8,
-        border: '1px solid rgba(0, 0, 0, 0.06)',
-        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+        border: `1px solid ${darkThemeTokens.border}`,
       }}>
         <Table
           columns={columns}
@@ -399,11 +395,11 @@ const FundMarket = () => {
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (t) => (
-              <Text type="secondary" style={{ fontSize: 13 }}>
+              <Text style={{ fontSize: 12, color: darkThemeTokens.textSecondary }}>
                 {searchMode ? (
-                  <>搜索结果: 共 <Text strong style={{ color: '#1677ff' }}>{t}</Text> 只匹配基金</>
+                  <>搜索结果: 共 <Text strong style={{ color: darkThemeTokens.textLink }}>{t}</Text> 只匹配基金</>
                 ) : (
-                  <>共 <Text strong style={{ color: '#262626' }}>{t}</Text> 只基金</>
+                  <>共 <Text strong style={{ color: darkThemeTokens.textPrimary }}>{t}</Text> 只基金</>
                 )}
               </Text>
             ),

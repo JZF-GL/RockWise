@@ -51,13 +51,13 @@ export const useTradingStore = create<TradingState>((set, get) => ({
         return { success: false, error: '账户未加载' };
       }
 
-      const result = await window.electronAPI.invoke('trading:buy', {
+      await window.electronAPI.invoke('trading:buy', {
         accountId: account.id,
         fundCode,
         fundName,
         amount,
         nav,
-      }) as { order: Order; position: Position };
+      });
 
       // 刷新数据
       await get().fetchAccount();
@@ -88,13 +88,13 @@ export const useTradingStore = create<TradingState>((set, get) => ({
         return { success: false, error: '账户未加载' };
       }
 
-      const result = await window.electronAPI.invoke('trading:sell', {
+      await window.electronAPI.invoke('trading:sell', {
         accountId: account.id,
         fundCode,
         fundName,
         shares,
         nav,
-      }) as { order: Order; position: Position | null };
+      });
 
       await get().fetchAccount();
       await get().refreshPositions();

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Button, Card, Form, Input, message, Typography, Space } from 'antd';
+import { Button, Card, Form, Input, message, Typography } from 'antd';
 import { UserOutlined, LockOutlined, FundOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
+import { darkThemeTokens } from '../../styles/theme';
 
 const { Title, Text } = Typography;
 
@@ -45,33 +46,35 @@ const Login = () => {
       justifyContent: 'center',
       alignItems: 'center',
       minHeight: 'calc(100vh - 56px)',
+      background: darkThemeTokens.bgApp,
     }}>
       <Card
         style={{
-          width: 400,
-          borderRadius: 12,
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08)',
+          width: 380,
+          borderRadius: 10,
+          background: darkThemeTokens.bgCard,
+          border: `1px solid ${darkThemeTokens.border}`,
         }}
-        bodyStyle={{ padding: '40px 36px 32px' }}
+        bodyStyle={{ padding: '36px 32px 28px' }}
       >
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{
-            width: 56,
-            height: 56,
-            borderRadius: 14,
-            background: 'linear-gradient(135deg, #1677ff, #0958d9)',
+            width: 48,
+            height: 48,
+            borderRadius: 10,
+            background: darkThemeTokens.primaryBg,
+            border: `1px solid rgba(77, 122, 176, 0.25)`,
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: 16,
-            boxShadow: '0 4px 12px rgba(22, 119, 255, 0.3)',
+            marginBottom: 14,
           }}>
-            <FundOutlined style={{ fontSize: 26, color: '#fff' }} />
+            <FundOutlined style={{ fontSize: 22, color: darkThemeTokens.primaryHover }} />
           </div>
-          <Title level={3} style={{ marginBottom: 6, fontWeight: 600 }}>
+          <Title level={4} style={{ marginBottom: 6, fontWeight: 500, color: darkThemeTokens.textHeading }}>
             欢迎回来
           </Title>
-          <Text type="secondary" style={{ fontSize: 14 }}>
+          <Text style={{ fontSize: 13, color: darkThemeTokens.textSecondary }}>
             登录后可管理自选基金，获取个性化推荐
           </Text>
         </div>
@@ -81,14 +84,14 @@ const Login = () => {
           onFinish={onFinish}
           autoComplete="off"
           layout="vertical"
-          size="large"
+          size="middle"
         >
           <Form.Item
             name="username"
             rules={[{ required: true, message: '请输入用户名' }]}
           >
             <Input
-              prefix={<UserOutlined style={{ color: '#bfbfbf' }} />}
+              prefix={<UserOutlined style={{ color: darkThemeTokens.textTertiary }} />}
               placeholder="用户名 / 手机号"
             />
           </Form.Item>
@@ -98,34 +101,28 @@ const Login = () => {
             rules={[{ required: true, message: '请输入密码' }]}
           >
             <Input.Password
-              prefix={<LockOutlined style={{ color: '#bfbfbf' }} />}
+              prefix={<LockOutlined style={{ color: darkThemeTokens.textTertiary }} />}
               placeholder="密码"
             />
           </Form.Item>
 
-          <Form.Item style={{ marginBottom: 16 }}>
+          <Form.Item style={{ marginBottom: 16, marginTop: 8 }}>
             <Button
               type="primary"
               htmlType="submit"
               loading={loading}
               block
               style={{
-                height: 44,
-                borderRadius: 8,
-                fontSize: 15,
-                fontWeight: 600,
+                height: 38,
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 500,
               }}
             >
               登录
             </Button>
           </Form.Item>
         </Form>
-
-        <div style={{ textAlign: 'center' }}>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            提示：输入任意用户名密码即可登录体验
-          </Text>
-        </div>
       </Card>
     </div>
   );

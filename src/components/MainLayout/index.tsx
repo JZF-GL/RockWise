@@ -8,6 +8,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
+import { darkThemeTokens } from '../../styles/theme';
 
 const { Sider, Content } = Layout;
 const { Text } = Typography;
@@ -29,44 +30,42 @@ const TitleBar = () => {
   return (
     <div
       style={{
-        height: 36,
-        background: 'linear-gradient(90deg, #0050b3 0%, #1677ff 50%, #0958d9 100%)',
+        height: 34,
+        background: darkThemeTokens.bgTitleBar,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 6px 0 14px',
+        padding: '0 4px 0 12px',
         WebkitAppRegion: 'drag',
         userSelect: 'none',
-        boxShadow: '0 1px 4px rgba(0, 0, 0, 0.15)',
+        borderBottom: `1px solid ${darkThemeTokens.border}`,
         position: 'relative',
         zIndex: 100,
-      }}
+      } as any}
     >
       <Space size={8}>
         <div style={{
-          width: 22,
-          height: 22,
-          borderRadius: 5,
-          background: 'rgba(255,255,255,0.2)',
+          width: 20,
+          height: 20,
+          borderRadius: 4,
+          background: 'rgba(255, 255, 255, 0.05)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          backdropFilter: 'blur(4px)',
         }}>
-          <FundOutlined style={{ color: '#fff', fontSize: 13 }} />
+          <FundOutlined style={{ color: darkThemeTokens.primaryHover, fontSize: 12 }} />
         </div>
         <Text style={{
-          color: '#fff',
-          fontSize: 13,
-          fontWeight: 600,
+          color: darkThemeTokens.textHeading,
+          fontSize: 12,
+          fontWeight: 500,
           letterSpacing: 0.3,
-          textShadow: '0 1px 2px rgba(0,0,0,0.1)',
         }}>
           基金智能分析
         </Text>
       </Space>
 
-      <Space size={2} style={{ WebkitAppRegion: 'no-drag', alignItems: 'center' }}>
+      <Space size={2} style={{ WebkitAppRegion: 'no-drag', alignItems: 'center' } as any}>
         {isLoggedIn && (
           <Dropdown
             menu={{
@@ -84,24 +83,23 @@ const TitleBar = () => {
               alignItems: 'center',
               gap: 6,
               cursor: 'pointer',
-              padding: '3px 10px',
-              borderRadius: 6,
+              padding: '2px 8px',
+              borderRadius: 4,
               transition: 'background 0.2s',
             }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
               onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
             >
               <Avatar
                 icon={<UserOutlined />}
-                size={20}
+                size={18}
                 style={{
-                  backgroundColor: 'rgba(255,255,255,0.25)',
-                  color: '#fff',
-                  fontSize: 11,
-                  border: '1.5px solid rgba(255,255,255,0.4)',
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  color: darkThemeTokens.textPrimary,
+                  fontSize: 10,
                 }}
               />
-              <Text style={{ color: '#fff', fontSize: 12, fontWeight: 500 }}>{username}</Text>
+              <Text style={{ color: darkThemeTokens.textSecondary, fontSize: 12 }}>{username}</Text>
             </div>
           </Dropdown>
         )}
@@ -111,12 +109,11 @@ const TitleBar = () => {
             size="small"
             icon={<LoginOutlined />}
             style={{
-              color: '#fff',
-              height: 26,
-              padding: '0 10px',
-              borderRadius: 6,
+              color: darkThemeTokens.textSecondary,
+              height: 24,
+              padding: '0 8px',
+              borderRadius: 4,
               fontSize: 12,
-              fontWeight: 500,
             }}
             onClick={() => navigate('/login')}
           >
@@ -126,37 +123,43 @@ const TitleBar = () => {
 
         <div style={{
           width: 1,
-          height: 14,
-          background: 'rgba(255,255,255,0.2)',
-          margin: '0 4px',
+          height: 12,
+          background: 'rgba(255,255,255,0.08)',
+          margin: '0 3px',
         }} />
 
         {/* 窗口控制按钮 */}
         {[
-          { icon: <MinusOutlined style={{ fontSize: 11 }} />, action: () => window.electronAPI?.minimize(), hoverBg: 'rgba(255,255,255,0.2)' },
-          { icon: <BorderOutlined style={{ fontSize: 10 }} />, action: () => window.electronAPI?.maximize(), hoverBg: 'rgba(255,255,255,0.2)' },
-          { icon: <CloseOutlined style={{ fontSize: 11 }} />, action: () => window.electronAPI?.close(), hoverBg: 'rgba(220,53,69,0.9)' },
+          { icon: <MinusOutlined style={{ fontSize: 10 }} />, action: () => window.electronAPI?.minimize(), hoverBg: 'rgba(255,255,255,0.08)' },
+          { icon: <BorderOutlined style={{ fontSize: 9 }} />, action: () => window.electronAPI?.maximize(), hoverBg: 'rgba(255,255,255,0.08)' },
+          { icon: <CloseOutlined style={{ fontSize: 10 }} />, action: () => window.electronAPI?.close(), hoverBg: 'rgba(180, 60, 60, 0.75)' },
         ].map((btn, i) => (
           <button
             key={i}
             onClick={btn.action}
             style={{
-              width: 30,
-              height: 26,
+              width: 28,
+              height: 24,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               background: 'transparent',
               border: 'none',
-              color: '#fff',
+              color: darkThemeTokens.textSecondary,
               cursor: 'pointer',
               borderRadius: 4,
-              transition: 'background 0.15s ease',
+              transition: 'background 0.15s ease, color 0.15s ease',
               WebkitAppRegion: 'no-drag',
               outline: 'none',
+            } as any}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = btn.hoverBg;
+              e.currentTarget.style.color = '#e1e6ee';
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = btn.hoverBg)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = darkThemeTokens.textSecondary;
+            }}
           >
             {btn.icon}
           </button>
@@ -203,23 +206,24 @@ const MainLayout = () => {
   ];
 
   return (
-    <Layout style={{ height: '100vh', overflow: 'hidden' }}>
+    <Layout style={{ height: '100vh', overflow: 'hidden', background: darkThemeTokens.bgApp }}>
       <TitleBar />
 
-      <Layout style={{ flex: 1, overflow: 'hidden' }}>
+      <Layout style={{ flex: 1, overflow: 'hidden', background: darkThemeTokens.bgApp }}>
         <Sider
           collapsible
           collapsed={collapsed}
           onCollapse={(value) => setCollapsed(value)}
           theme="dark"
-          width={196}
-          collapsedWidth={56}
+          width={180}
+          collapsedWidth={52}
           style={{
             overflow: 'auto',
-            borderRight: 'none',
+            background: darkThemeTokens.bgSider,
+            borderRight: `1px solid ${darkThemeTokens.border}`,
           }}
         >
-          <div style={{ height: 8 }} />
+          <div style={{ height: 6 }} />
           <Menu
             theme="dark"
             mode="inline"
@@ -228,7 +232,7 @@ const MainLayout = () => {
             onClick={({ key }) => navigate(key)}
             style={{
               borderInlineEnd: 'none',
-              fontSize: 14,
+              fontSize: 13,
             }}
           />
         </Sider>
@@ -236,8 +240,8 @@ const MainLayout = () => {
         <Content
           style={{
             overflow: 'auto',
-            padding: 20,
-            background: '#f5f7fa',
+            padding: 16,
+            background: darkThemeTokens.bgApp,
           }}
         >
           <Outlet />

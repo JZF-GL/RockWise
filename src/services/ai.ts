@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useSettingsStore, AI_PROVIDERS } from '../stores/settingsStore';
+import { useSettingsStore } from '../stores/settingsStore';
 
 // AI分析服务
 export class AIService {

@@ -33,7 +33,7 @@ export class FundService {
   }
 
   // 获取基金历史净值
-  async getFundHistory(fundCode: string, days: number = 30): Promise<any[]> {
+  async getFundHistory(_fundCode: string, days: number = 30): Promise<any[]> {
     try {
       // TODO: 实际调用基金历史数据API
       const mockData = [];

@@ -3,6 +3,7 @@ import ReactECharts from 'echarts-for-react';
 import { Radio, Card, Row, Col, Statistic, Space, Tag, Alert } from 'antd';
 import { LineChartOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { HistoryItem } from '../GrowthRateChart';
+import { darkThemeTokens } from '../../styles/theme';
 
 interface NetValueEstimateChartProps {
   data: HistoryItem[]; // 历史净值，按时间正序排列
@@ -187,10 +188,13 @@ const NetValueEstimateChart: React.FC<NetValueEstimateChartProps> = ({
       title: fundName ? {
         text: `${fundName} 净值预估推演图`,
         left: 'left',
-        textStyle: { fontSize: 13, fontWeight: 'normal', color: '#595959' },
+        textStyle: { fontSize: 13, fontWeight: 'normal', color: darkThemeTokens.textSecondary },
       } : undefined,
       tooltip: {
         trigger: 'axis',
+        backgroundColor: darkThemeTokens.bgTooltip,
+        borderColor: darkThemeTokens.border,
+        textStyle: { color: darkThemeTokens.textPrimary },
         formatter: (params: any) => {
           const idx = params[0]?.dataIndex;
           const date = allDates[idx];
@@ -200,8 +204,8 @@ const NetValueEstimateChart: React.FC<NetValueEstimateChartProps> = ({
             const histVal = historySeriesData[idx];
             return `
               <div style="font-size:12px;">
-                <div style="font-weight:600;margin-bottom:4px;color:#333;">${date} (历史实际)</div>
-                <div>真实净值: <b style="color:#1677ff">${Number(histVal).toFixed(4)}</b></div>
+                <div style="font-weight:600;margin-bottom:4px;color:${darkThemeTokens.textHeading};">${date} (历史实际)</div>
+                <div style="color:${darkThemeTokens.textSecondary};">真实净值: <b style="color:${darkThemeTokens.primaryHover}">${Number(histVal).toFixed(4)}</b></div>
               </div>
             `;
           } else {
@@ -211,10 +215,10 @@ const NetValueEstimateChart: React.FC<NetValueEstimateChartProps> = ({
             const diffPct = (((Number(predVal) - forecastResult.latestNav) / forecastResult.latestNav) * 100).toFixed(2);
             return `
               <div style="font-size:12px;">
-                <div style="font-weight:600;margin-bottom:4px;color:#fa8c16;">${date} (算法预估)</div>
-                <div>预估净值: <b style="color:#fa8c16">${Number(predVal).toFixed(4)}</b> (${Number(diffPct) >= 0 ? '+' : ''}${diffPct}%)</div>
-                <div>压力上限(95%): <span style="color:#cf1322">${Number(upper).toFixed(4)}</span></div>
-                <div>支撑下限(95%): <span style="color:#3f8600">${Number(lower).toFixed(4)}</span></div>
+                <div style="font-weight:600;margin-bottom:4px;color:${darkThemeTokens.gold};">${date} (算法预估)</div>
+                <div style="color:${darkThemeTokens.textSecondary};">预估净值: <b style="color:${darkThemeTokens.gold}">${Number(predVal).toFixed(4)}</b> (${Number(diffPct) >= 0 ? '+' : ''}${diffPct}%)</div>
+                <div style="color:${darkThemeTokens.textSecondary};">压力上限(95%): <span style="color:${darkThemeTokens.up}">${Number(upper).toFixed(4)}</span></div>
+                <div style="color:${darkThemeTokens.textSecondary};">支撑下限(95%): <span style="color:${darkThemeTokens.down}">${Number(lower).toFixed(4)}</span></div>
               </div>
             `;
           }
@@ -224,7 +228,7 @@ const NetValueEstimateChart: React.FC<NetValueEstimateChartProps> = ({
         data: ['历史净值', '预估走势', '压力上限', '支撑下限'],
         top: 0,
         right: 10,
-        textStyle: { fontSize: 11 },
+        textStyle: { fontSize: 11, color: darkThemeTokens.textSecondary },
       },
       grid: {
         left: '3%',
@@ -237,9 +241,11 @@ const NetValueEstimateChart: React.FC<NetValueEstimateChartProps> = ({
         type: 'category',
         boundaryGap: false,
         data: allDates,
+        axisLine: { lineStyle: { color: darkThemeTokens.border } },
         axisLabel: {
           fontSize: 11,
           rotate: 30,
+          color: darkThemeTokens.textSecondary,
         },
       },
       yAxis: {
@@ -247,11 +253,12 @@ const NetValueEstimateChart: React.FC<NetValueEstimateChartProps> = ({
         scale: true,
         axisLabel: {
           formatter: (v: number) => v.toFixed(3),
+          color: darkThemeTokens.textSecondary,
         },
         splitLine: {
           lineStyle: {
             type: 'dashed',
-            color: '#f0f0f0',
+            color: 'rgba(255, 255, 255, 0.05)',
           },
         },
       },
@@ -260,20 +267,20 @@ const NetValueEstimateChart: React.FC<NetValueEstimateChartProps> = ({
           name: '历史净值',
           type: 'line',
           data: historySeriesData,
-          smooth: true,
+          smooth: false,
           lineStyle: {
-            color: '#1677ff',
-            width: 2.5,
+            color: darkThemeTokens.primaryHover,
+            width: 2.2,
           },
-          itemStyle: { color: '#1677ff' },
+          itemStyle: { color: darkThemeTokens.primaryHover },
           markPoint: {
             data: [
               {
                 name: '当前点',
                 coord: [allDates[splitIndex], forecastResult.latestNav],
                 value: '当前',
-                itemStyle: { color: '#1677ff' },
-                label: { fontSize: 10 },
+                itemStyle: { color: darkThemeTokens.primaryHover },
+                label: { fontSize: 10, color: '#ffffff' },
               },
             ],
           },
@@ -282,48 +289,47 @@ const NetValueEstimateChart: React.FC<NetValueEstimateChartProps> = ({
           name: '预估走势',
           type: 'line',
           data: forecastSeriesData,
-          smooth: true,
+          smooth: false,
           lineStyle: {
-            color: '#fa8c16',
-            width: 2.5,
+            color: darkThemeTokens.gold,
+            width: 2.2,
             type: 'dashed',
           },
-          itemStyle: { color: '#fa8c16' },
+          itemStyle: { color: darkThemeTokens.gold },
         },
         {
           name: '压力上限',
           type: 'line',
           data: upperSeriesData,
-          smooth: true,
+          smooth: false,
           lineStyle: {
-            color: 'rgba(207, 19, 34, 0.4)',
+            color: 'rgba(200, 94, 104, 0.5)',
             width: 1,
             type: 'dotted',
           },
-          itemStyle: { color: '#cf1322' },
+          itemStyle: { color: darkThemeTokens.up },
           symbol: 'none',
         },
         {
           name: '支撑下限',
           type: 'line',
           data: lowerSeriesData,
-          smooth: true,
+          smooth: false,
           lineStyle: {
-            color: 'rgba(63, 134, 0, 0.4)',
+            color: 'rgba(78, 154, 116, 0.5)',
             width: 1,
             type: 'dotted',
           },
-          itemStyle: { color: '#3f8600' },
+          itemStyle: { color: darkThemeTokens.down },
           symbol: 'none',
           areaStyle: {
-            // 在支撑下限和压力上限间形成预测通道
-            color: 'rgba(250, 140, 22, 0.08)',
+            color: 'rgba(184, 148, 77, 0.06)',
             origin: 'auto',
           },
         },
       ],
     };
-  }, [forecastResult]);
+  }, [forecastResult, fundName]);
 
   if (!data || data.length < 5 || !forecastResult) {
     return (
@@ -379,56 +385,56 @@ const NetValueEstimateChart: React.FC<NetValueEstimateChartProps> = ({
       {/* 预估关键量化指标卡 */}
       <Row gutter={[12, 12]} style={{ marginBottom: 16 }}>
         <Col xs={12} sm={6}>
-          <Card size="small" style={{ background: '#fafafa' }}>
+          <Card size="small" style={{ background: darkThemeTokens.bgInput, borderColor: darkThemeTokens.border }}>
             <Statistic
               title="当前基准净值"
               value={forecastResult.latestNav}
               precision={4}
-              valueStyle={{ color: '#1677ff' }}
+              valueStyle={{ color: darkThemeTokens.primaryHover }}
             />
-            <div style={{ fontSize: 11, color: '#8c8c8c', marginTop: 2 }}>
+            <div style={{ fontSize: 11, color: darkThemeTokens.textTertiary, marginTop: 2 }}>
               基准日期: {forecastResult.latestDate}
             </div>
           </Card>
         </Col>
 
         <Col xs={12} sm={6}>
-          <Card size="small" style={{ background: '#fafafa' }}>
+          <Card size="small" style={{ background: darkThemeTokens.bgInput, borderColor: darkThemeTokens.border }}>
             <Statistic
               title={`未来${forecastDays}日预估净值`}
               value={forecastResult.targetNav}
               precision={4}
-              valueStyle={{ color: '#fa8c16', fontWeight: 'bold' }}
+              valueStyle={{ color: darkThemeTokens.gold, fontWeight: 'bold' }}
             />
-            <div style={{ fontSize: 11, color: isPositive ? '#cf1322' : '#3f8600', marginTop: 2 }}>
+            <div style={{ fontSize: 11, color: isPositive ? darkThemeTokens.up : darkThemeTokens.down, marginTop: 2 }}>
               预期涨幅: {isPositive ? '+' : ''}{forecastResult.targetGrowth}%
             </div>
           </Card>
         </Col>
 
         <Col xs={12} sm={6}>
-          <Card size="small" style={{ background: '#fafafa' }}>
+          <Card size="small" style={{ background: darkThemeTokens.bgInput, borderColor: darkThemeTokens.border }}>
             <Statistic
               title="95%置信波动区间"
               value={`${forecastResult.lowerSeriesData[forecastResult.lowerSeriesData.length - 1]} ~ ${forecastResult.upperSeriesData[forecastResult.upperSeriesData.length - 1]}`}
-              valueStyle={{ fontSize: 14, color: '#595959', fontWeight: 600 }}
+              valueStyle={{ fontSize: 13, color: darkThemeTokens.textPrimary, fontWeight: 500 }}
             />
-            <div style={{ fontSize: 11, color: '#8c8c8c', marginTop: 2 }}>
+            <div style={{ fontSize: 11, color: darkThemeTokens.textTertiary, marginTop: 2 }}>
               幅度: {forecastResult.minTargetGrowth}% ~ +{forecastResult.maxTargetGrowth}%
             </div>
           </Card>
         </Col>
 
         <Col xs={12} sm={6}>
-          <Card size="small" style={{ background: '#fafafa' }}>
+          <Card size="small" style={{ background: darkThemeTokens.bgInput, borderColor: darkThemeTokens.border }}>
             <Statistic
               title="年化波动率"
               value={forecastResult.annualVol}
               precision={2}
               suffix="%"
-              valueStyle={{ color: forecastResult.annualVol > 20 ? '#cf1322' : '#52c41a' }}
+              valueStyle={{ color: forecastResult.annualVol > 20 ? darkThemeTokens.up : darkThemeTokens.down }}
             />
-            <div style={{ fontSize: 11, color: '#8c8c8c', marginTop: 2 }}>
+            <div style={{ fontSize: 11, color: darkThemeTokens.textTertiary, marginTop: 2 }}>
               {forecastResult.annualVol > 20 ? '高波动品种' : '稳健波动品种'}
             </div>
           </Card>
